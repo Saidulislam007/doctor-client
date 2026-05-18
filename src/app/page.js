@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Calendar, ShieldCheck, Clock, Users } from "lucide-react";
 import HeroBanner from "@/components/home/HeroBanner";
 import TickerNotice from "@/components/home/TickerNotice";
+import AboutSection from "@/components/home/AboutSection";
 
 export default function Home() {
   const features = [
@@ -66,6 +67,7 @@ export default function Home() {
   </div>
 </div>
 
+    <AboutSection>  </AboutSection>
       {/* Features/Value Proposition Section */}
       <section className="max-w-7xl mx-auto">
         <div className="text-center space-y-4">
