@@ -267,7 +267,7 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        {/* Link: “Already have an account? Login” */}
+        {/*  “Already have an account? Login” */}
         <p className="text-center text-sm text-slate-600 pt-1">
           Already have an account?{" "}
           <Link href="/login" className="font-semibold text-indigo-600 hover:text-indigo-500 underline underline-offset-4 transition-colors">
