@@ -87,7 +87,7 @@ export default function AboutSection() {
               ))}
             </ul>
 
-            {/* CTA Button Area (বাটনের প্যাডিং ও টেক্সট সাইজ বাড়িয়ে বড় ও আকর্ষণীয় করা হয়েছে) */}
+            
             <div className="pt-4">
               <Link
                 href="/appointments"
