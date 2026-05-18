@@ -3,6 +3,9 @@ import { Calendar, ShieldCheck, Clock, Users } from "lucide-react";
 import HeroBanner from "@/components/home/HeroBanner";
 import TickerNotice from "@/components/home/TickerNotice";
 import AboutSection from "@/components/home/AboutSection";
+import FaqSection from "@/components/home/FaqSection";
+import BookingBanner from "@/components/home/BookingBanner";
+import TestimonialSection from "@/components/home/TestimonialSection";
 
 export default function Home() {
   const features = [
@@ -95,6 +98,9 @@ export default function Home() {
           })}
         </div>
       </section>
+      <TestimonialSection></TestimonialSection>
+      <BookingBanner></BookingBanner>
+      <FaqSection></FaqSection>
     </div>
   );
 }
