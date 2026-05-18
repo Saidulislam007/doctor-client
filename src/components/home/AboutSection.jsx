@@ -1,7 +1,8 @@
 "use client";
 
-import Image from "next/image";
-import { Check, Star, ArrowRight } from "lucide-react";
+// Next.js রাউটিং এর সঠিক ইম্পোর্ট
+import Link from "next/link"; 
+import { Check, Star, ArrowUpRight } from "lucide-react";
 
 export default function AboutSection() {
   const points = [
@@ -86,12 +87,19 @@ export default function AboutSection() {
               ))}
             </ul>
 
-            {/* CTA Button */}
+            {/* CTA Button Area (বাটনের প্যাডিং ও টেক্সট সাইজ বাড়িয়ে বড় ও আকর্ষণীয় করা হয়েছে) */}
             <div className="pt-4">
-              <button className="group inline-flex items-center justify-center px-8 py-4 bg-emerald-700 text-white font-bold rounded-2xl hover:bg-emerald-800 active:scale-[0.98] transition-all duration-200 shadow-lg shadow-emerald-100">
-                Book an Appointment
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </button>
+              <Link
+                href="/appointments"
+                className="group inline-flex items-center justify-between gap-4 bg-gradient-to-r from-[#1b4332] to-[#8cc63f] hover:from-[#143225] hover:to-[#7cb334] text-white font-bold pl-8 pr-3 py-3 rounded-full transition-all duration-300 ease-out shadow-lg hover:shadow-xl hover:shadow-emerald-950/20 active:scale-[0.98]"
+              >
+                <span className="text-sm sm:text-base tracking-wide">Book an Appointment</span>
+                
+                {/* ভেতরের ইন্ডিকেটর অ্যারো সার্কেল */}
+                <div className="h-10 w-10 rounded-full bg-white text-emerald-950 flex items-center justify-center group-hover:rotate-45 transition-all duration-300 shadow-sm shrink-0">
+                  <ArrowUpRight className="h-5 w-5 stroke-[2.5]" />
+                </div>
+              </Link>
             </div>
 
           </div>
