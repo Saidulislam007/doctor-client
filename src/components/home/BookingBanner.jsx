@@ -42,7 +42,7 @@ export default function BookingBanner() {
           <div className="pt-4">
             <Link
               href="/appointments"
-              className="group inline-flex items-center justify-between gap-3 bg-gradient-to-r from-[#006699] to-[#66b3ff] hover:from-[#005580] hover:to-[#4da6ff] text-white font-bold pl-6 pr-2 py-2 rounded-full transition-all duration-300 ease-out shadow-lg hover:shadow-xl active:scale-[0.98]"
+              className="bg-gradient-to-r from-[#1b4332] to-[#8cc63f] hover:from-[#143225] hover:to-[#7cb334] text-white font-bold px-6 py-3 rounded-full inline-flex items-center gap-3 transition-all duration-300 ease-out shadow-md"
             >
               <span className="text-sm tracking-wide">Book an Appointment</span>
               

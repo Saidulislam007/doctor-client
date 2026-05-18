@@ -6,6 +6,7 @@ import AboutSection from "@/components/home/AboutSection";
 import FaqSection from "@/components/home/FaqSection";
 import BookingBanner from "@/components/home/BookingBanner";
 import TestimonialSection from "@/components/home/TestimonialSection";
+import ProfessionalsSection from "@/components/home/ProfessionalsSection";
 
 export default function Home() {
   const features = [
@@ -98,6 +99,7 @@ export default function Home() {
           })}
         </div>
       </section>
+      <ProfessionalsSection></ProfessionalsSection>
       <TestimonialSection></TestimonialSection>
       <BookingBanner></BookingBanner>
       <FaqSection></FaqSection>
