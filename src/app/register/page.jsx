@@ -109,19 +109,19 @@ export default function RegisterPage() {
       <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-12 bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-2xl animate-[fadeIn_0.4s_ease-out]">
         
         {/* Left Side: Fixed Content Medical Banner (ভুল হিরো ব্যানার সরিয়ে এখানে সঠিক লেআউট দেওয়া হয়েছে) */}
-        <div className="relative md:col-span-5 bg-indigo-950 min-h-[350px] md:min-h-[650px] flex flex-col justify-between p-8 text-white overflow-hidden group">
+        <div className="relative md:col-span-5 bg-emerald-950 min-h-[350px] md:min-h-[650px] flex flex-col justify-between p-8 text-white overflow-hidden group">
           <div 
             className="absolute inset-0 bg-cover bg-center mix-blend-overlay opacity-50 scale-100 group-hover:scale-105 transition-transform duration-700 ease-out"
             style={{ 
               backgroundImage: "url('https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=800&auto=format&fit=crop')" 
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-indigo-950 via-indigo-950/40 to-indigo-900/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/40 to-emerald-900/40" />
 
           {/* Logo & Platform Name */}
           <div className="relative z-10 flex items-center space-x-2">
             <div className="p-2 bg-white/10 backdrop-blur-md rounded-xl">
-              <Stethoscope className="h-6 w-6 text-indigo-400 stroke-[2.5]" />
+              <Stethoscope className="h-6 w-6 text-emerald-400 stroke-[2.5]" />
             </div>
             <span className="font-bold text-xl tracking-tight">MedReserve</span>
           </div>
@@ -132,8 +132,8 @@ export default function RegisterPage() {
               “Seamless scheduling bridges the gap between critical symptoms and expert medical consultation.”
             </h3>
             <div>
-              <p className="font-medium text-indigo-300 text-sm">Dr. Evelyn Vance</p>
-              <p className="text-xs text-indigo-200/70">Lead Consultant & Medical Informatics Officer</p>
+              <p className="font-medium text-emerald-300 text-sm">Dr. Evelyn Vance</p>
+              <p className="text-xs text-emerald-200/70">Lead Consultant & Medical Informatics Officer</p>
             </div>
           </div>
         </div>
@@ -186,8 +186,8 @@ export default function RegisterPage() {
               <div className="space-y-3.5">
                 
                 {/* Floating style Name input */}
-                <div className="relative border border-slate-300 focus-within:border-indigo-600 rounded-xl px-3 py-1.5 transition-colors group">
-                  <label className="block text-[11px] font-medium text-slate-500 group-focus-within:text-indigo-600 uppercase tracking-wider">
+                <div className="relative border border-slate-300 focus-within:border-emerald-800 rounded-xl px-3 py-1.5 transition-colors group">
+                  <label className="block text-[11px] font-medium text-slate-500 group-focus-within:text-emerald-800 uppercase tracking-wider">
                     Full Name
                   </label>
                   <div className="flex items-center space-x-2 mt-0.5">
@@ -204,8 +204,8 @@ export default function RegisterPage() {
                 </div>
 
                 {/* Floating style Email input */}
-                <div className="relative border border-slate-300 focus-within:border-indigo-600 rounded-xl px-3 py-1.5 transition-colors group">
-                  <label className="block text-[11px] font-medium text-slate-500 group-focus-within:text-indigo-600 uppercase tracking-wider">
+                <div className="relative border border-slate-300 focus-within:border-emerald-800 rounded-xl px-3 py-1.5 transition-colors group">
+                  <label className="block text-[11px] font-medium text-slate-500 group-focus-within:text-emerald-800 uppercase tracking-wider">
                     Email Address
                   </label>
                   <div className="flex items-center space-x-2 mt-0.5">
@@ -222,8 +222,8 @@ export default function RegisterPage() {
                 </div>
 
                 {/* Floating style Photo URL input */}
-                <div className="relative border border-slate-300 focus-within:border-indigo-600 rounded-xl px-3 py-1.5 transition-colors group">
-                  <label className="block text-[11px] font-medium text-slate-500 group-focus-within:text-indigo-600 uppercase tracking-wider">
+                <div className="relative border border-slate-300 focus-within:border-emerald-800 rounded-xl px-3 py-1.5 transition-colors group">
+                  <label className="block text-[11px] font-medium text-slate-500 group-focus-within:text-emerald-800 uppercase tracking-wider">
                     Photo URL <span className="text-[10px] text-slate-400 font-normal lowercase">(optional)</span>
                   </label>
                   <div className="flex items-center space-x-2 mt-0.5">
@@ -240,10 +240,10 @@ export default function RegisterPage() {
 
                 {/* Floating style Password input with in-form validation error */}
                 <div className={`relative border rounded-xl px-3 py-1.5 transition-colors group ${
-                  passwordError ? "border-red-400 focus-within:border-red-500" : "border-slate-300 focus-within:border-indigo-600"
+                  passwordError ? "border-red-400 focus-within:border-red-500" : "border-slate-300 focus-within:border-emerald-800"
                 }`}>
                   <label className={`block text-[11px] font-medium uppercase tracking-wider ${
-                    passwordError ? "text-red-500" : "text-slate-500 group-focus-within:text-indigo-600"
+                    passwordError ? "text-red-500" : "text-slate-500 group-focus-within:text-emerald-800"
                   }`}>
                     Password
                   </label>
@@ -274,7 +274,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading || socialLoading}
-                className="w-full flex justify-center items-center py-3 px-4 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] disabled:opacity-70 disabled:pointer-events-none transition-all duration-200 shadow-md shadow-indigo-100 mt-2"
+                className="w-full flex justify-center items-center py-3 px-4 rounded-xl text-sm font-semibold text-white bg-emerald-800 hover:bg-emerald-700 active:scale-[0.99] disabled:opacity-70 disabled:pointer-events-none transition-all duration-200 shadow-md shadow-emerald-100 mt-2"
               >
                 {loading ? (
                   <Loader2 className="animate-spin h-5 w-5 text-white" />
@@ -287,7 +287,7 @@ export default function RegisterPage() {
             {/* Redirect Footer Link */}
             <p className="text-center text-xs text-slate-500 font-medium">
               Already have an account?{" "}
-              <Link href="/login" className="font-bold text-indigo-600 hover:text-indigo-700 transition-colors">
+              <Link href="/login" className="font-bold text-emerald-800 hover:text-emerald-700 transition-colors">
                 Login
               </Link>
             </p>

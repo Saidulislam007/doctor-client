@@ -49,8 +49,8 @@ export default function Navbar() {
           {/* Left: Brand Logo */}
           <div className="flex-shrink-0 flex items-center">
             <Link href="/" className="flex items-center space-x-2 text-indigo-600 font-bold text-xl tracking-tight">
-              <Stethoscope className="h-7 w-7 stroke-[2.5]" />
-              <span>MedReserve</span>
+              <Stethoscope className="h-7 w-7 stroke-[2.5] text-emerald-800" />
+              <span className="text-emerald-800">MedReserve</span>
             </Link>
           </div>
 
@@ -64,12 +64,12 @@ export default function Navbar() {
                   href={link.path}
                   className={`flex items-center space-x-1.5 px-1 py-2 text-sm font-medium border-b-2 transition-colors ${
                     isActive(link.path)
-                      ? "border-indigo-600 text-indigo-600"
+                      ? "border-emerald-800 text-emerald-800"
                       : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
                   }`}
                 >
                   <Icon className="h-4 w-4" />
-                  <span>{link.name}</span>
+                  <span className="text-emerald-800">{link.name}</span>
                 </Link>
               );
             })}
@@ -101,7 +101,7 @@ export default function Navbar() {
                   className="flex items-center space-x-1 px-3 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50 transition-colors"
                 >
                   <LogOut className="h-4 w-4" />
-                  <span>Logout</span>
+                  <span className="bg-emerald-800">Logout</span>
                 </button>
               </div>
             ) : (
@@ -114,7 +114,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   href="/register"
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-sm"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-800 hover:bg-emerald-700 transition-colors shadow-sm"
                 >
                   Register
                 </Link>
@@ -128,7 +128,7 @@ export default function Navbar() {
               onClick={() => setIsOpen(!isOpen)}
               className="text-slate-500 hover:text-slate-700 p-2 rounded-md focus:outline-none"
             >
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isOpen ? <X className="h-6 w-6 text-emerald-800" /> : <Menu className="h-6 w-6 text-emerald-800" />}
             </button>
           </div>
         </div>
@@ -146,11 +146,11 @@ export default function Navbar() {
                 onClick={() => setIsOpen(false)}
                 className={`flex items-center space-x-2 px-3 py-2.5 rounded-md text-base font-medium transition-colors ${
                   isActive(link.path)
-                    ? "bg-indigo-50 text-indigo-700"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    ? "bg-indigo-50 text-emerald-800"
+                    : "text-emerald-800 hover:bg-emerald-600 hover:text-slate-900"
                 }`}
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="h-5 w-5 text-emerald-800" />
                 <span>{link.name}</span>
               </Link>
             );
@@ -171,7 +171,7 @@ export default function Navbar() {
                 </div>
                 <button
                   onClick={() => { setIsOpen(false); handleLogout(); }}
-                  className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 border border-slate-300 text-base font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50"
+                  className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 border border-slate-300 text-base font-medium rounded-md text-emerald-800 bg-white hover:bg-slate-50"
                 >
                   <LogOut className="h-5 w-5" />
                   <span>Logout</span>
@@ -189,7 +189,7 @@ export default function Navbar() {
                 <Link
                   href="/register"
                   onClick={() => setIsOpen(false)}
-                  className="text-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                  className="text-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-emerald-800 hover:bg-emerald-700"
                 >
                   Register
                 </Link>

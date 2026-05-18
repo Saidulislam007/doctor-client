@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Calendar, ShieldCheck, Clock, Users } from "lucide-react";
 import HeroBanner from "@/components/home/HeroBanner";
+import TickerNotice from "@/components/home/TickerNotice";
 
 export default function Home() {
   const features = [
@@ -25,6 +26,45 @@ export default function Home() {
     <div className="space-y-10">
       {/* Hero Section */}
       <HeroBanner></HeroBanner>
+      <TickerNotice></TickerNotice>
+
+      <div className="w-full bg-emerald-900 text-white py-12 px-6 sm:px-12 lg:px-16 border-t border-emerald-950">
+  <div className="max-w-7xl mx-auto">
+    {/* ৪টি কলামের নিখুঁত রেসপন্সিভ গ্রিড এবং ডিভাইডার লাইন */}
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center items-center divide-x divide-emerald-800/60">
+      
+      {/* Stat 1 */}
+      <div className="space-y-2">
+        <h3 className="text-4xl sm:text-5xl font-bold tracking-tight">10k+</h3>
+        <p className="text-xs sm:text-sm font-medium text-emerald-200/80 uppercase tracking-wider">Healthy Clients</p>
+      </div>
+
+      {/* Stat 2 */}
+      <div className="space-y-2 pl-4">
+        <h3 className="text-4xl sm:text-5xl font-bold tracking-tight">95%</h3>
+        <p className="text-xs sm:text-sm font-medium text-emerald-200/80 uppercase tracking-wider">Successful Rate</p>
+      </div>
+
+      {/* Stat 3 */}
+      <div className="space-y-2 pl-4">
+        <h3 className="text-4xl sm:text-5xl font-bold tracking-tight">50+</h3>
+        <p className="text-xs sm:text-sm font-medium text-emerald-200/80 uppercase tracking-wider">Expert Consultants</p>
+      </div>
+
+      {/* Stat 4 */}
+      <div className="space-y-2 pl-4">
+        <h3 className="text-4xl sm:text-5xl font-bold tracking-tight">7+</h3>
+        <p className="text-xs sm:text-sm font-medium text-emerald-200/80 uppercase tracking-wider">Healthcare Awards</p>
+      </div>
+
+    </div>
+
+    {/* Bottom Note */}
+    <p className="text-center text-[11px] text-emerald-300/60 mt-8 font-medium tracking-wide">
+      Based on real clinical outcomes across verified partner hospital networks and diagnostics.
+    </p>
+  </div>
+</div>
 
       {/* Features/Value Proposition Section */}
       <section className="max-w-7xl mx-auto">
