@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "react-hot-toast";
-import { Stethoscope, User, Mail, Link2, Lock, UserPlus, Loader2, AlertCircle } from "lucide-react";
+import { Stethoscope, User, Mail, Link2, Lock, AlertCircle, Loader2 } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -21,7 +21,7 @@ export default function RegisterPage() {
 
   const [passwordError, setPasswordError] = useState("");
 
-  // পাসওয়ার্ড ভ্যালিডেশন রুলস চেকার
+  // পাসওয়ার্ড ভ্যালিডেশন রুলস চেকার
   const validatePassword = (password) => {
     if (password.length < 6) {
       return "Password must be at least 6 characters long.";
@@ -32,15 +32,14 @@ export default function RegisterPage() {
     if (!/[a-z]/.test(password)) {
       return "Password must contain at least one lowercase letter.";
     }
-    return ""; // কোনো এরর না থাকলে খালি স্ট্রিং রিটার্ন করবে
+    return "";
   };
 
-  // পাসওয়ার্ড ইনপুটের রিয়েল-টাইম চেঞ্জ হ্যান্ডেলার
+  // পাসওয়ার্ড ইনপুটের রিয়াল-টাইম চেঞ্জ হ্যান্ডেলার
   const handlePasswordChange = (e) => {
     const newPassword = e.target.value;
     setFormData({ ...formData, password: newPassword });
     
-    // টাইপ করার সাথে সাথে ইন-ফর্ম ভ্যালিডেশন এরর আপডেট হবে
     if (newPassword) {
       setPasswordError(validatePassword(newPassword));
     } else {
@@ -56,28 +55,25 @@ export default function RegisterPage() {
       return toast.error("Please fill in all required fields");
     }
 
-    // ফাইনাল পাসওয়ার্ড ভ্যালিডেশন চেক (সাবমিট প্রিভেন্ট করার জন্য)
     const error = validatePassword(formData.password);
     if (error) {
       setPasswordError(error);
       return toast.error("Please fix the password errors before registering.");
     }
 
-    setLoading(true);
+    loading(true);
     try {
       await authClient.signUp.email({
         email: formData.email,
         password: formData.password,
         name: formData.name,
-        image: formData.image || undefined, // Photo URL (ঐচ্ছিক)
+        image: formData.image || undefined,
       }, {
         onSuccess: () => {
           toast.success("Registration successful! Please login.");
-          // সফল হলে সরাসরি Login পেজে রিডাইরেক্ট করবে
           router.push("/login"); 
         },
         onError: (ctx) => {
-          // ফেইল হলে টোস্ট নোটিফিকেশনে এরর মেসেজ দেখাবে
           toast.error(ctx.error.message || "Registration failed. Try a different email.");
           setLoading(false);
         }
@@ -94,7 +90,7 @@ export default function RegisterPage() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackUrl: "/dashboard", // সোশ্যাল সাইনআপ ডিরেক্ট সেশন তৈরি করে তাই এটি ড্যাশবোর্ডে যাবে
+        callbackUrl: "/dashboard",
       }, {
         onError: (ctx) => {
           toast.error(ctx.error.message || "Google signup failed.");
@@ -108,172 +104,197 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center px-4 sm:px-6 lg:px-8">
-      {/* Container with Custom Tailwind Slide-up Animation */}
-      <div className="max-w-md w-full space-y-6 bg-white p-8 rounded-2xl border border-slate-200 shadow-xl transition-all duration-500 hover:shadow-2xl animate-[slideUp_0.4s_ease-out]">
+    <div className="min-h-[85vh] flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-slate-50">
+      {/* Split Screen Container */}
+      <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-12 bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-2xl animate-[fadeIn_0.4s_ease-out]">
         
-        {/* Title & Header */}
-        <div className="text-center">
-          <div className="inline-flex p-3 bg-indigo-50 rounded-xl text-indigo-600 mb-3 animate-[bounce_2s_infinite]">
-            <Stethoscope className="h-8 w-8" />
+        {/* Left Side: Fixed Content Medical Banner (ভুল হিরো ব্যানার সরিয়ে এখানে সঠিক লেআউট দেওয়া হয়েছে) */}
+        <div className="relative md:col-span-5 bg-indigo-950 min-h-[350px] md:min-h-[650px] flex flex-col justify-between p-8 text-white overflow-hidden group">
+          <div 
+            className="absolute inset-0 bg-cover bg-center mix-blend-overlay opacity-50 scale-100 group-hover:scale-105 transition-transform duration-700 ease-out"
+            style={{ 
+              backgroundImage: "url('https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=800&auto=format&fit=crop')" 
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-indigo-950 via-indigo-950/40 to-indigo-900/40" />
+
+          {/* Logo & Platform Name */}
+          <div className="relative z-10 flex items-center space-x-2">
+            <div className="p-2 bg-white/10 backdrop-blur-md rounded-xl">
+              <Stethoscope className="h-6 w-6 text-indigo-400 stroke-[2.5]" />
+            </div>
+            <span className="font-bold text-xl tracking-tight">MedReserve</span>
           </div>
-          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Register
-          </h2>
-          <p className="mt-1.5 text-sm text-slate-500">
-            Create your account to start booking appointments
-          </p>
+
+          {/* Quote Area */}
+          <div className="relative z-10 space-y-4 mt-auto">
+            <h3 className="text-xl md:text-2xl font-semibold leading-relaxed tracking-tight">
+              “Seamless scheduling bridges the gap between critical symptoms and expert medical consultation.”
+            </h3>
+            <div>
+              <p className="font-medium text-indigo-300 text-sm">Dr. Evelyn Vance</p>
+              <p className="text-xs text-indigo-200/70">Lead Consultant & Medical Informatics Officer</p>
+            </div>
+          </div>
         </div>
 
-        {/* Social Signup Button (Single Method: Google) */}
-        <div>
-          <button
-            type="button"
-            disabled={socialLoading || loading}
-            onClick={handleGoogleSignup}
-            className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-slate-300 rounded-xl bg-white hover:bg-slate-50 active:scale-[0.99] font-medium text-slate-700 text-sm transition-all duration-200 shadow-sm disabled:opacity-60"
-          >
-            {socialLoading ? (
-              <Loader2 className="animate-spin h-5 w-5 text-slate-500" />
-            ) : (
-              <>
-                <svg className="h-5 w-5" viewBox="0 0 24 24">
-                  <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l3.227-3.227C18.43 1.49 15.62 0 12.24 0 5.58 0 0 5.37 0 12s5.58 12 12.24 12c6.96 0 11.57-4.854 11.57-11.77 0-.795-.085-1.4-.195-1.945H12.24z"/>
-                </svg>
-                <span>Sign up with Google</span>
-              </>
-            )}
-          </button>
-        </div>
-
-        {/* Divider */}
-        <div className="relative flex items-center justify-center">
-          <div className="border-t border-slate-200 w-full"></div>
-          <span className="absolute bg-white px-3 text-xs uppercase text-slate-400 font-medium tracking-wider">
-            or use credentials
-          </span>
-        </div>
-
-        {/* Main Form */}
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="space-y-3.5">
+        {/* Right Side: Register Form */}
+        <div className="md:col-span-7 flex flex-col justify-center px-6 py-10 sm:px-12 lg:px-16 bg-white">
+          <div className="max-w-md w-full mx-auto space-y-6">
             
-            {/* Name Field */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Full Name
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-600 transition-colors">
-                  <User className="h-5 w-5" />
-                </div>
-                <input
-                  type="text"
-                  required
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl bg-slate-50 placeholder-slate-400 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent focus:bg-white transition-all duration-200"
-                  placeholder="John Doe"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-              </div>
+            {/* Header Content */}
+            <div className="text-center md:text-left space-y-2">
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+                Welcome back to MedReserve
+              </h2>
+              <p className="text-sm text-slate-500 max-w-sm">
+                Create your care account today and unlock instantaneous doctor bookings worldwide.
+              </p>
             </div>
 
-            {/* Email Field */}
+            {/* Social Oauth Container */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Email Address
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-600 transition-colors">
-                  <Mail className="h-5 w-5" />
-                </div>
-                <input
-                  type="email"
-                  required
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl bg-slate-50 placeholder-slate-400 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent focus:bg-white transition-all duration-200"
-                  placeholder="name@example.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                />
-              </div>
+              <button
+                type="button"
+                disabled={socialLoading || loading}
+                onClick={handleGoogleSignup}
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 hover:bg-slate-100/80 active:scale-[0.99] font-semibold text-slate-800 text-xs transition-all duration-200 disabled:opacity-60"
+              >
+                {socialLoading ? (
+                  <Loader2 className="animate-spin h-4 w-4 text-slate-500" />
+                ) : (
+                  <>
+                    <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
+                      <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l3.227-3.227C18.43 1.49 15.62 0 12.24 0 5.58 0 0 5.37 0 12s5.58 12 12.24 12c6.96 0 11.57-4.854 11.57-11.77 0-.795-.085-1.4-.195-1.945H12.24z"/>
+                    </svg>
+                    <span>Sign up with Google</span>
+                  </>
+                )}
+              </button>
             </div>
 
-            {/* Photo URL Field */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Photo URL <span className="text-xs text-slate-400 font-normal">(Optional)</span>
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-600 transition-colors">
-                  <Link2 className="h-5 w-5" />
-                </div>
-                <input
-                  type="url"
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl bg-slate-50 placeholder-slate-400 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent focus:bg-white transition-all duration-200"
-                  placeholder="https://example.com/photo.jpg"
-                  value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                />
-              </div>
+            {/* Custom Separator */}
+            <div className="relative flex items-center justify-center">
+              <div className="border-t border-slate-100 w-full" />
+              <span className="absolute bg-white px-4 text-[10px] uppercase text-slate-400 font-bold tracking-widest">
+                OR REGISTER WITH EMAIL
+              </span>
             </div>
 
-            {/* Password Field */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Password
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-600 transition-colors">
-                  <Lock className="h-5 w-5" />
+            {/* Credentials Form */}
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              <div className="space-y-3.5">
+                
+                {/* Floating style Name input */}
+                <div className="relative border border-slate-300 focus-within:border-indigo-600 rounded-xl px-3 py-1.5 transition-colors group">
+                  <label className="block text-[11px] font-medium text-slate-500 group-focus-within:text-indigo-600 uppercase tracking-wider">
+                    Full Name
+                  </label>
+                  <div className="flex items-center space-x-2 mt-0.5">
+                    <User className="h-4 w-4 text-slate-400 shrink-0" />
+                    <input
+                      type="text"
+                      required
+                      className="w-full bg-transparent p-0 border-0 text-slate-900 text-sm focus:ring-0 focus:outline-none placeholder-slate-400"
+                      placeholder="John Doe"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    />
+                  </div>
                 </div>
-                <input
-                  type="password"
-                  required
-                  className={`block w-full pl-10 pr-3 py-2.5 border rounded-xl bg-slate-50 placeholder-slate-400 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:bg-white transition-all duration-200 ${
-                    passwordError 
-                      ? "border-red-400 focus:ring-red-500 focus:border-transparent" 
-                      : "border-slate-300 focus:ring-indigo-600 focus:border-transparent"
-                  }`}
-                  placeholder="••••••••"
-                  value={formData.password}
-                  onChange={handlePasswordChange}
-                />
+
+                {/* Floating style Email input */}
+                <div className="relative border border-slate-300 focus-within:border-indigo-600 rounded-xl px-3 py-1.5 transition-colors group">
+                  <label className="block text-[11px] font-medium text-slate-500 group-focus-within:text-indigo-600 uppercase tracking-wider">
+                    Email Address
+                  </label>
+                  <div className="flex items-center space-x-2 mt-0.5">
+                    <Mail className="h-4 w-4 text-slate-400 shrink-0" />
+                    <input
+                      type="email"
+                      required
+                      className="w-full bg-transparent p-0 border-0 text-slate-900 text-sm focus:ring-0 focus:outline-none placeholder-slate-400"
+                      placeholder="alex.jordan@gmail.com"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                {/* Floating style Photo URL input */}
+                <div className="relative border border-slate-300 focus-within:border-indigo-600 rounded-xl px-3 py-1.5 transition-colors group">
+                  <label className="block text-[11px] font-medium text-slate-500 group-focus-within:text-indigo-600 uppercase tracking-wider">
+                    Photo URL <span className="text-[10px] text-slate-400 font-normal lowercase">(optional)</span>
+                  </label>
+                  <div className="flex items-center space-x-2 mt-0.5">
+                    <Link2 className="h-4 w-4 text-slate-400 shrink-0" />
+                    <input
+                      type="url"
+                      className="w-full bg-transparent p-0 border-0 text-slate-900 text-sm focus:ring-0 focus:outline-none placeholder-slate-400"
+                      placeholder="https://example.com/photo.jpg"
+                      value={formData.image}
+                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                {/* Floating style Password input with in-form validation error */}
+                <div className={`relative border rounded-xl px-3 py-1.5 transition-colors group ${
+                  passwordError ? "border-red-400 focus-within:border-red-500" : "border-slate-300 focus-within:border-indigo-600"
+                }`}>
+                  <label className={`block text-[11px] font-medium uppercase tracking-wider ${
+                    passwordError ? "text-red-500" : "text-slate-500 group-focus-within:text-indigo-600"
+                  }`}>
+                    Password
+                  </label>
+                  <div className="flex items-center space-x-2 mt-0.5">
+                    <Lock className="h-4 w-4 text-slate-400 shrink-0" />
+                    <input
+                      type="password"
+                      required
+                      className="w-full bg-transparent p-0 border-0 text-slate-900 text-sm focus:ring-0 focus:outline-none placeholder-slate-400 tracking-wide"
+                      placeholder="••••••••••••"
+                      value={formData.password}
+                      onChange={handlePasswordChange}
+                    />
+                  </div>
+                </div>
+
+                {/* Real-time Validation Error Node */}
+                {passwordError && (
+                  <div className="mt-1 flex items-start gap-1.5 text-xs text-red-600 animate-[fadeIn_0.2s_ease-out] px-1">
+                    <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span className="font-medium">{passwordError}</span>
+                  </div>
+                )}
+
               </div>
-              
-              {/* If invalid: Show error inside form */}
-              {passwordError && (
-                <div className="mt-1.5 flex items-start gap-1.5 text-xs text-red-600 animate-[fadeIn_0.2s_ease-out]">
-                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                  <span>{passwordError}</span>
-                </div>
-              )}
-            </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading || socialLoading}
+                className="w-full flex justify-center items-center py-3 px-4 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] disabled:opacity-70 disabled:pointer-events-none transition-all duration-200 shadow-md shadow-indigo-100 mt-2"
+              >
+                {loading ? (
+                  <Loader2 className="animate-spin h-5 w-5 text-white" />
+                ) : (
+                  "Sign up"
+                )}
+              </button>
+            </form>
+
+            {/* Redirect Footer Link */}
+            <p className="text-center text-xs text-slate-500 font-medium">
+              Already have an account?{" "}
+              <Link href="/login" className="font-bold text-indigo-600 hover:text-indigo-700 transition-colors">
+                Login
+              </Link>
+            </p>
+
           </div>
+        </div>
 
-          {/* Register Button */}
-          <button
-            type="submit"
-            disabled={loading || socialLoading}
-            className="group relative w-full flex justify-center items-center py-3 px-4 border border-transparent text-sm font-semibold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none transition-all duration-200 shadow-md shadow-indigo-100 mt-2"
-          >
-            {loading ? (
-              <Loader2 className="animate-spin h-5 w-5 text-white" />
-            ) : (
-              <>
-                Register Account
-                <UserPlus className="ml-2 h-4 w-4" />
-              </>
-            )}
-          </button>
-        </form>
-
-        {/*  “Already have an account? Login” */}
-        <p className="text-center text-sm text-slate-600 pt-1">
-          Already have an account?{" "}
-          <Link href="/login" className="font-semibold text-indigo-600 hover:text-indigo-500 underline underline-offset-4 transition-colors">
-            Login
-          </Link>
-        </p>
       </div>
     </div>
   );

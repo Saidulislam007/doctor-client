@@ -1,8 +1,11 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "react-hot-toast";
-import Navbar from "@/components/shared/navbar";
-import Footer from "@/components/shared/footer";
+
 import "./globals.css";
+
+import Footer from "@/components/shared/Footer";
+import Navbar from "@/components/shared/Navber";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,8 +51,8 @@ export default function RootLayout({ children }) {
           }}
         />
         
-        <Navbar />
-        <main className="flex-grow container mx-auto px-4 py-8 max-w-7xl">
+        <Navbar/>
+        <main className="flex-grow max-w-9xl">
           {children}
         </main>
         <Footer />

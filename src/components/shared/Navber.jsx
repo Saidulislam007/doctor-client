@@ -8,7 +8,7 @@ import { toast } from "react-hot-toast";
 import { Stethoscope, User, LogOut, Menu, X, Calendar, LayoutDashboard, Home } from "lucide-react";
 
 export default function Navbar() {
-  // Better Auth হুক ব্যবহার করা হচ্ছে
+  
   const { data: sessionData, isPending } = useSession();
   const pathname = usePathname();
   const router = useRouter();

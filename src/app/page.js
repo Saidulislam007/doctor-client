@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Calendar, ShieldCheck, Clock, Users } from "lucide-react";
+import HeroBanner from "@/components/home/HeroBanner";
 
 export default function Home() {
   const features = [
@@ -21,34 +22,9 @@ export default function Home() {
   ];
 
   return (
-    <div className="space-y-16 py-6">
+    <div className="space-y-10">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-indigo-600 to-violet-700 rounded-3xl text-white overflow-hidden shadow-xl">
-        <div className="max-w-4xl mx-auto text-center px-6 py-16 sm:py-20 lg:px-8">
-          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
-            Your Health, Our Priority. <br />
-            <span className="text-indigo-200">Book Top Doctors Online.</span>
-          </h1>
-          <p className="mt-6 text-lg sm:text-xl leading-relaxed text-indigo-100 max-w-2xl mx-auto">
-            Skip the waiting room. Connect with certified medical practitioners and specialists for personalized healthcare and seamless clinical appointments.
-          </p>
-          <div className="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4">
-            <Link
-              href="/appointments"
-              className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 border border-transparent text-base font-medium rounded-xl text-indigo-700 bg-white hover:bg-indigo-50 transition-colors shadow-md"
-            >
-              <Calendar className="mr-2 h-5 w-5 text-indigo-600" />
-              Find a Doctor & Book
-            </Link>
-            <Link
-              href="/register"
-              className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 border border-indigo-300 text-base font-medium rounded-xl text-white bg-indigo-600/30 hover:bg-indigo-600/50 transition-colors"
-            >
-              Create Patient Account
-            </Link>
-          </div>
-        </div>
-      </section>
+      <HeroBanner></HeroBanner>
 
       {/* Features/Value Proposition Section */}
       <section className="max-w-7xl mx-auto">
