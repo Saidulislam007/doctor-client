@@ -28,11 +28,16 @@ export default function LoginPage() {
       await authClient.signIn.email({
         email: formData.email,
         password: formData.password,
-        callbackUrl: "/dashboard",
+        // এখানে আপনার আগের /dashboard পরিবর্তন করে সরাসরি হোম পেজ (/) রাউট দেওয়া হয়েছে
+        callbackUrl: "/", 
       }, {
         onSuccess: () => {
           toast.success("Welcome back! Login successful.");
-          router.push("/dashboard");
+          
+          // ১. সাকসেসফুল লগইন শেষে ইউজারকে সরাসরি হোম পেজে রিডাইরেক্ট করা হলো
+          router.push("/");
+          
+          // ২. নেভিগেশন বারের ক্যাশ রিসেট করে ফ্রেশ প্রোফাইল স্টেট ফিরিয়ে আনার জন্য রিফ্রেশ ট্রিকার
           router.refresh();
         },
         onError: (ctx) => {
@@ -51,7 +56,8 @@ export default function LoginPage() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackUrl: "/dashboard",
+        // গুগল ওঅথ লগইনের ক্ষেত্রেও রিডাইরেক্ট রাউট পরিবর্তন করে হোম পেজ (/) করে দেওয়া হলো
+        callbackUrl: "/", 
       }, {
         onError: (ctx) => {
           toast.error(ctx.error.message || "Google authentication failed.");
@@ -79,7 +85,7 @@ export default function LoginPage() {
             }}
           />
           {/* Subtle Dynamic Animated Medical Network Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-tfrom-emerald-950 via-emerald-950/40 to-emerald-900/40 animate-[pulse_6s_infinite_alternate]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/40 to-emerald-900/40 animate-[pulse_6s_infinite_alternate]" />
 
           {/* Logo & Platform Name */}
           <div className="relative z-10 flex items-center space-x-2">
@@ -166,7 +172,7 @@ export default function LoginPage() {
                 </Link>
               </div>
 
-              {/* Remember Sign In Toggle (Matches uploaded wireframe mockup) */}
+              {/* Remember Sign In Toggle */}
               <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
                 <span className="text-xs font-medium text-slate-600">Remember sign in details</span>
                 <button

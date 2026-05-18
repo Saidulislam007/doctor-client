@@ -61,7 +61,8 @@ export default function RegisterPage() {
       return toast.error("Please fix the password errors before registering.");
     }
 
-    loading(true);
+    setLoading(true);
+    
     try {
       await authClient.signUp.email({
         email: formData.email,
@@ -71,7 +72,12 @@ export default function RegisterPage() {
       }, {
         onSuccess: () => {
           toast.success("Registration successful! Please login.");
+          
+          // ১. ইউজারকে সাকসেসফুলি লগইন পেজে রিডাইরেক্ট করা হলো
           router.push("/login"); 
+          
+          // ২. নেভিগেশন বার এবং রুট স্টেটের ক্যাশ রিসেট করার জন্য রিফ্রেশ ট্রিকার
+          router.refresh();
         },
         onError: (ctx) => {
           toast.error(ctx.error.message || "Registration failed. Try a different email.");
@@ -90,8 +96,14 @@ export default function RegisterPage() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackUrl: "/dashboard",
+        // গুগল দিয়ে সাইন-আপ করার পর ইউজারকে সরাসরি হোম পেজে (/) বা ড্যাশবোর্ডে পাঠাতে পারেন
+        callbackUrl: "/",
       }, {
+        onSuccess: () => {
+          toast.success("Google registration successful!");
+          router.push("/");
+          router.refresh();
+        },
         onError: (ctx) => {
           toast.error(ctx.error.message || "Google signup failed.");
           setSocialLoading(false);
@@ -108,7 +120,7 @@ export default function RegisterPage() {
       {/* Split Screen Container */}
       <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-12 bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-2xl animate-[fadeIn_0.4s_ease-out]">
         
-        {/* Left Side: Fixed Content Medical Banner (ভুল হিরো ব্যানার সরিয়ে এখানে সঠিক লেআউট দেওয়া হয়েছে) */}
+        {/* Left Side: Fixed Content Medical Banner */}
         <div className="relative md:col-span-5 bg-emerald-950 min-h-[350px] md:min-h-[650px] flex flex-col justify-between p-8 text-white overflow-hidden group">
           <div 
             className="absolute inset-0 bg-cover bg-center mix-blend-overlay opacity-50 scale-100 group-hover:scale-105 transition-transform duration-700 ease-out"
@@ -211,7 +223,7 @@ export default function RegisterPage() {
                   <div className="flex items-center space-x-2 mt-0.5">
                     <Mail className="h-4 w-4 text-slate-400 shrink-0" />
                     <input
-                      type="email"
+                      type="emerald"
                       required
                       className="w-full bg-transparent p-0 border-0 text-slate-900 text-sm focus:ring-0 focus:outline-none placeholder-slate-400"
                       placeholder="alex.jordan@gmail.com"
