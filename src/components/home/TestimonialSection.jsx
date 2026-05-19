@@ -1,8 +1,30 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { Star } from "lucide-react";
+import AnimatedRating from "./AnimatedRating.jsx";
 
 export default function TestimonialSection() {
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.05 } // সেকশনটির মাত্র ৫% স্ক্রিনে আসলেই কার্ড অ্যানিমেশন শুরু হবে
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   const testimonials = [
     {
       id: 1,
@@ -10,7 +32,7 @@ export default function TestimonialSection() {
       quote: "After years of struggling with chronic issues, I finally changed my routine. This care plan was transformative. My health feels more stable, and every day looks brighter.",
       name: "Robert",
       role: "Patient",
-      rating: "5.0",
+      rating: 5.0, 
       gridSpan: "md:col-span-3"
     },
     {
@@ -20,7 +42,7 @@ export default function TestimonialSection() {
       quote: "After years of dry, clinical experiences, I finally found real relief. This gentle, structured formula was incredible. I connect better, recover faster, and feel confident in my care every day.",
       name: "Alex Martin",
       role: "Health Enthusiast",
-      rating: "5.0",
+      rating: 5.0,
       gridSpan: "md:col-span-6"
     },
     {
@@ -29,7 +51,7 @@ export default function TestimonialSection() {
       quote: "Years of ongoing health issues improved instantly with this holistic treatment setup. My body feels stronger, more resilient, and stays comfortably balanced from morning to night.",
       name: "Johan Marley",
       role: "Student",
-      rating: "5.0",
+      rating: 4.8, 
       gridSpan: "md:col-span-3"
     },
     {
@@ -38,7 +60,7 @@ export default function TestimonialSection() {
       quote: "This portal surprised me from the very first week. The response time improved, scheduling friction reduced, and my consultation flow started looking smoother, fresher, and faster.",
       name: "Leah Martinez",
       role: "Care Recipient",
-      rating: "5.0",
+      rating: 5.0,
       gridSpan: "md:col-span-3"
     },
     {
@@ -47,7 +69,7 @@ export default function TestimonialSection() {
       quote: "I've never used anything this lightweight yet effective. It calms medical anxiety instantly, keeps data tracking locked in, and gives my family a soft, comfortable layer of security.",
       name: "Ariana Collins",
       role: "Wellness Consultant",
-      rating: "5.0",
+      rating: 4.9,
       gridSpan: "md:col-span-3"
     },
     {
@@ -57,13 +79,13 @@ export default function TestimonialSection() {
       quote: "After years of searching for right advice, I finally found real relief. This diagnostic formula was incredible. I hydrate better, follow suggestions naturally, and feel confide in my skin every day.",
       name: "Maria Noor",
       role: "Therapy Patient",
-      rating: "5.0",
+      rating: 5.0,
       gridSpan: "md:col-span-6"
     }
   ];
 
   return (
-    <section className="w-full py-20 bg-white overflow-hidden">
+    <section ref={sectionRef} className="w-full py-20 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header Section */}
@@ -78,10 +100,17 @@ export default function TestimonialSection() {
 
         {/* Testimonials 12-Column Responsive Grid Layout */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          {testimonials.map((item) => (
+          {testimonials.map((item, index) => (
             <div
               key={item.id}
-              className={`${item.gridSpan} bg-[#f4f7f1]/60 border border-slate-100 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-sm hover:shadow-md hover:bg-[#f4f7f1] transition-all duration-300`}
+              // ফিক্সড: নিচ থেকে ওপরে ওঠার দূরত্ব ৯৯পিক্সেল এবং ট্রানজিশন ডাইনামিক করা হয়েছে
+              className={`${item.gridSpan} bg-[#f4f7f1]/60 border border-slate-100 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-sm hover:shadow-xl hover:bg-[#f4f7f1] active:scale-[0.99] transition-all duration-700 ${
+                isVisible ? "animate-slideInUp opacity-100" : "opacity-0 translate-y-[90px]"
+              }`}
+              style={{
+                // ফিক্সড: একটার পর আরেকটা কার্ড আসার মাঝখানের গ্যাপ বাড়িয়ে ২৫০ms করা হয়েছে
+                animationDelay: isVisible ? `${index * 250}ms` : "0ms",
+              }}
             >
               {/* Content Conditional Layout */}
               {item.type === "with-image" ? (
@@ -105,7 +134,7 @@ export default function TestimonialSection() {
                       <div className="text-right">
                         <p className="text-xs font-semibold text-slate-400">Grade</p>
                         <div className="flex items-center justify-end text-sm font-bold text-slate-800 mt-0.5">
-                          <span>{item.rating}</span>
+                          <AnimatedRating targetValue={item.rating} />
                           <div className="flex text-amber-500 ml-1">
                             {[...Array(5)].map((_, i) => <Star key={i} className="h-3 w-3 fill-current" />)}
                           </div>
@@ -131,7 +160,7 @@ export default function TestimonialSection() {
                     <div className="text-right">
                       <p className="text-xs font-semibold text-slate-400">Grade</p>
                       <div className="flex items-center justify-end text-sm font-bold text-slate-800 mt-0.5">
-                        <span>{item.rating}</span>
+                        <AnimatedRating targetValue={item.rating} />
                         <div className="flex text-amber-500 ml-1">
                           {[...Array(5)].map((_, i) => <Star key={i} className="h-3 w-3 fill-current" />)}
                         </div>

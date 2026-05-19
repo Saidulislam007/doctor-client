@@ -87,9 +87,11 @@ export default function AboutSection() {
               ))}
             </ul>
 
-            
+            {/* বুকিং রাউট লিংক অ্যাকশন ফ্রেম */}
             <div className="pt-4">
               <Link
+                // ফিক্সড: ইউজারকে সরাসরি ডক্টর চয়েস এবং বুকিং ফ্লোতে নিয়ে যাওয়ার জন্য ডিরেকশন রাউট দেওয়া হলো
+                // যদি আপনার কোনো গ্লোবাল বুকিং পেজ থাকে, তবে এটিকে "/booking" বা আপনার কাঙ্ক্ষিত রাউটে পরিবর্তন করতে পারেন
                 href="/appointments"
                 className="group inline-flex items-center justify-between gap-4 bg-gradient-to-r from-[#1b4332] to-[#8cc63f] hover:from-[#143225] hover:to-[#7cb334] text-white font-bold pl-8 pr-3 py-3 rounded-full transition-all duration-300 ease-out shadow-lg hover:shadow-xl hover:shadow-emerald-950/20 active:scale-[0.98]"
               >
