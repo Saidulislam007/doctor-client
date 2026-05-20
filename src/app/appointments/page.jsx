@@ -1,134 +1,78 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Star, Stethoscope, Clock, ShieldCheck, MapPin, ArrowUpRight } from "lucide-react";
+import { Star, Clock, ShieldCheck, MapPin, ArrowUpRight, Loader2 } from "lucide-react";
 
 export default function AppointmentsPage() {
-  // ১০ জন ডাক্তারের ডামি ডেটাবেজ অ্যারে
-  const initialDoctors = [
-    {
-      id: "doc-1",
-      name: "Dr. Evelyn Vance",
-      specialty: "Cardiologist",
-      rating: 4.9,
-      reviews: 142,
-      experience: "12 years",
-      image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=400&auto=format&fit=crop",
-      location: "Dhaka Medical College",
-      available: "Today",
-    },
-    {
-      id: "doc-2",
-      name: "Dr. Robert Chen",
-      specialty: "Neurologist",
-      rating: 4.7,
-      reviews: 98,
-      experience: "10 years",
-      image: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=400&auto=format&fit=crop",
-      location: "Apollo Hospitals",
-      available: "Tomorrow",
-    },
-    {
-      id: "doc-3",
-      name: "Dr. Maria Noor",
-      specialty: "Dermatologist",
-      rating: 5.0,
-      reviews: 210,
-      experience: "8 years",
-      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
-      location: "Square Hospital",
-      available: "Today",
-    },
-    {
-      id: "doc-4",
-      name: "Dr. Aris Thorne",
-      specialty: "Pediatrician",
-      rating: 4.6,
-      reviews: 84,
-      experience: "15 years",
-      image: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=400&auto=format&fit=crop",
-      location: "United Hospital",
-      available: "Mon, May 25",
-    },
-    {
-      id: "doc-5",
-      name: "Dr. Sarah Jenkins",
-      specialty: "Gynecologist",
-      rating: 4.8,
-      reviews: 165,
-      experience: "11 years",
-      image: "https://images.unsplash.com/photo-1594824813573-246434de83fb?q=80&w=400&auto=format&fit=crop",
-      location: "Labaid Specialized Hospital",
-      available: "Today",
-    },
-    {
-      id: "doc-6",
-      name: "Dr. James Wilson",
-      specialty: "Orthopedic Surgeon",
-      rating: 4.5,
-      reviews: 73,
-      experience: "14 years",
-      image: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?q=80&w=400&auto=format&fit=crop",
-      location: "Popular Consultation Center",
-      available: "Wed, May 27",
-    },
-    {
-      id: "doc-7",
-      name: "Dr. Aliyah Rahman",
-      specialty: "Psychiatrist",
-      rating: 4.9,
-      reviews: 112,
-      experience: "9 years",
-      image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400&auto=format&fit=crop",
-      location: "National Institute of Mental Health",
-      available: "Tomorrow",
-    },
-    {
-      id: "doc-8",
-      name: "Dr. David Kim",
-      specialty: "Ophthalmologist",
-      rating: 4.4,
-      reviews: 55,
-      experience: "7 years",
-      image: "https://images.unsplash.com/photo-1637059824899-a441006a6875?q=80&w=400&auto=format&fit=crop",
-      location: "Bangladesh Eye Hospital",
-      available: "Today",
-    },
-    {
-      id: "doc-9",
-      name: "Dr. Johan Marley",
-      specialty: "General Physician",
-      rating: 4.7,
-      reviews: 130,
-      experience: "10 years",
-      image: "https://images.unsplash.com/photo-1614608682850-e0d6ed316d47?q=80&w=400&auto=format&fit=crop",
-      location: "Ibn Sina Medical College",
-      available: "Thu, May 21",
-    },
-    {
-      id: "doc-10",
-      name: "Dr. Lisa Kudrow",
-      specialty: "Endocrinologist",
-      rating: 4.3,
-      reviews: 42,
-      experience: "6 years",
-      image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=400&auto=format&fit=crop",
-      location: "BIRDEM General Hospital",
-      available: "Fri, May 22",
-    },
-  ];
+  // লাইভ স্টেট ম্যানেজমেন্ট ফ্রেমওয়ার্ক
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // প্রফেশনাল সর্টিং লজিক: রেটিং অনুযায়ী ডেসেন্ডিং (৫.০ থেকে কমের দিকে) সিরিয়াল করা হলো
-  const sortedDoctors = [...initialDoctors].sort((a, b) => b.rating - a.rating);
+  // 🎯 ব্যাকএন্ড এপিআই থেকে ডাক্তারদের ডাটা ফেচ করার হুক
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("http://localhost:5000/doctors");
+        
+        if (!response.ok) {
+          throw new Error("Failed to sync data stream from server");
+        }
+        
+        const data = await response.json();
+        setDoctors(data);
+      } catch (err) {
+        console.error("❌ Fetching doctors catalog error:", err.message);
+        setError(err.message || "Something went wrong while loading doctors.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchDoctors();
+  }, []);
+
+  // 📊 প্রফেশনাল সর্টিং লজিক: এপিআই থেকে আসা ডাটাকে রেটিং অনুযায়ী ডেসেন্ডিং সিরিয়াল করা হলো
+  const sortedDoctors = [...doctors].sort((a, b) => Number(b.rating) - Number(a.rating));
+
+  // ⏳ কন্ডিশন ১: ব্যাকএন্ড থেকে ডাটা আসার আগ পর্যন্ত প্রফেশনাল ফুল-স্ক্রিন লোডার
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50/50 p-4">
+        <Loader2 className="h-10 w-10 text-emerald-800 animate-spin shrink-0" />
+        <p className="text-sm font-bold text-slate-500 mt-3 tracking-wide">Fetching Clinical Practitioners Database...</p>
+      </div>
+    );
+  }
+
+  // ❌ কন্ডিশন ২: ব্যাকএন্ড সার্ভার বন্ধ থাকলে বা ডাটা না আসলে এরর মেসেজ স্ক্রিন
+  if (error || sortedDoctors.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50/50 p-4 text-center">
+        <h2 className="text-2xl font-black text-slate-800 tracking-tight">Database Offline</h2>
+        <p className="text-sm text-slate-500 font-medium mt-1 max-w-sm">
+          {error || "No verified doctors found in the server at this moment."}
+        </p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="mt-5 text-xs font-bold text-white bg-emerald-800 px-4 py-2.5 rounded-xl active:scale-95 transition-all shadow-md"
+        >
+          Retry Connection
+        </button>
+      </div>
+    );
+  }
+
+  // ✅ কন্ডিশন ৩: ডাটা সফলভাবে ফেচ হলে মূল UI রেন্ডার হবে
   return (
     <div className="min-h-screen bg-slate-50/50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Top Header Grid Area */}
         <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-slate-200 pb-6 mb-10 gap-4">
-          <div className="space-y-2">
+          <div className="space-y-2 text-left">
             <div className="inline-flex items-center space-x-2 bg-emerald-50 text-emerald-800 px-3 py-1 rounded-full text-xs font-bold border border-emerald-100">
               <ShieldCheck className="h-3.5 w-3.5" />
               <span>Certified Top Specialists</span>
@@ -149,7 +93,7 @@ export default function AppointmentsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedDoctors.map((doctor, index) => (
             <div
-              key={doctor.id}
+              key={doctor.id || doctor._id} // মঙ্গোডিবির সেফটি কী হিসেবে অবজেক্ট আইডি বা কাস্টম আইডি ট্র্যাক করা হচ্ছে
               className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:border-emerald-600/20 active:scale-[0.995] transition-all duration-300 flex flex-col group"
             >
               
@@ -173,7 +117,7 @@ export default function AppointmentsPage() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                   </span>
-                  <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wide">
+                  <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wide truncate max-w-[150px]">
                     {doctor.available}
                   </span>
                 </div>
@@ -182,14 +126,14 @@ export default function AppointmentsPage() {
               {/* Core Content Framework */}
               <div className="p-6 flex flex-col justify-between flex-grow space-y-5">
                 
-                <div className="space-y-2">
+                <div className="space-y-2 text-left">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded-md">
                       {doctor.specialty}
                     </span>
                     <div className="flex items-center space-x-1">
                       <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                      <span className="text-sm font-black text-slate-800">{doctor.rating.toFixed(1)}</span>
+                      <span className="text-sm font-black text-slate-800">{Number(doctor.rating).toFixed(1)}</span>
                       <span className="text-xs text-slate-400 font-medium">({doctor.reviews})</span>
                     </div>
                   </div>
@@ -217,7 +161,7 @@ export default function AppointmentsPage() {
                     <p className="text-sm font-black text-slate-800">Free / Covered</p>
                   </div>
                   
-                  {/* ডাইনামিক আইডি দিয়ে ভিউ ডিটেইলস রাউট রিডাইরেকশন */}
+                  {/* ডাইনামিক আইডি দিয়ে ভিউ ডিটেইলস রাউট রিডাইরেকশন */}
                   <Link
                     href={`/appointments/${doctor.id}`}
                     className="inline-flex items-center space-x-1 bg-slate-900 hover:bg-emerald-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all duration-200 active:scale-95 shadow-sm shadow-slate-200 group/btn"

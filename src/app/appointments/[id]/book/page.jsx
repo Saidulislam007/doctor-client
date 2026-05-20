@@ -48,25 +48,60 @@ export default function BookingCheckoutPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmitBooking = async (e) => {
-    e.preventDefault();
-    if (!formData.patientName || !formData.patientPhone || !formData.appointmentDate || !formData.timeSlot) {
-      return toast.error("Please fill in all required fields.");
+ const handleSubmitBooking = async (e) => {
+  e.preventDefault();
+  
+  // ১. ভ্যালিডেশন চেক (ফর্ম খালি থাকলে আটকে দেবে)
+  if (!formData.patientName || !formData.patientPhone || !formData.appointmentDate || !formData.timeSlot) {
+    return toast.error("Please fill in all required fields.");
+  }
+
+  console.log("🔥 ব্যাকএন্ডে পাঠানোর জন্য প্রস্তুত ডেটা:", formData);
+
+  setLoading(true);
+  
+  try {
+    // 🎯 ২. এখানে আপনার ব্যাকএন্ড পোস্ট (POST) এপিআই কল করা হচ্ছে
+    // (আপনার এক্সপ্রেস সার্ভার যদি অন্য পোর্টে চলে, যেমন ৫০৭৭ বা ৪০০০, তবে সেই পোর্ট নম্বরটি দেবেন)
+    const response = await fetch("http://localhost:5000/appointments", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...formData,
+        doctorName: doctor?.name, // ডাক্তারের নামও সাথে পাঠিয়ে দেওয়া হচ্ছে
+        specialty: doctor?.specialty // ডাক্তারের স্পেশালটিও ট্র্যাক রাখার জন্য পাঠানো যেতে পারে
+      }),
+    });
+
+    const data = await response.json();
+
+    
+
+    // ৩. ব্যাকএন্ডে ডেটা সফলভাবে ইনসার্ট হলে (MongoDB থেকে acknowledged: true আসলে)
+    if (data.acknowledged || data.insertedId) {
+      toast.success(`Appointment with ${doctor?.name} successfully requested!`);
+      
+      // ফর্ম ক্লিয়ার করার জন্য (ঐচ্ছিক)
+      // setFormData({ patientName: "", patientPhone: "", appointmentDate: "", timeSlot: "" });
+      
+      // ড্যাশবোর্ডে রিডাইরেক্ট
+      router.push("/dashboard");
+    } else {
+      // যদি ডাটাবেজ রেসপন্স পজিটিভ না আসে
+      toast.error("Something went wrong while saving the appointment.");
     }
 
-    setLoading(true);
-    try {
-      // এখানে আমরা পরে আমাদের তৈরি করা এক্সপ্রেস ব্যাকএন্ড সার্ভারের এপিআই কল করব
-      setTimeout(() => {
-        toast.success(`Appointment with ${doctor?.name} successfully requested!`);
-        setLoading(false);
-        router.push("/dashboard"); // বুকিং শেষে ড্যাশবোর্ডে রিডাইরেক্ট
-      }, 1500);
-    } catch (error) {
-      toast.error("Booking failed. Please try again.");
-      setLoading(false);
-    }
-  };
+  } catch (error) {
+    // ৪. নেটওয়ার্ক এরর বা ব্যাকএন্ড সার্ভার বন্ধ থাকলে এই ক্যাচ ব্লক কাজ করবে
+    console.error("❌ Booking Error:", error);
+    toast.error("Server-side connection failed. Please try again.");
+  } finally {
+    // লোডিং স্পিনার বন্ধ করা (সফল হোক বা এরর আসুক)
+    setLoading(false);
+  }
+};
 
   if (!doctor) {
     return <div className="p-8 text-center font-bold">Doctor Not Found</div>;
