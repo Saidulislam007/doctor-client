@@ -210,7 +210,6 @@ export default function MyProfilePage() {
             </div>
           </div>
 
-          {/* লোডিং এনিমেশন বাটন ট্রিকার */}
           <button
             type="submit"
             disabled={loading}
