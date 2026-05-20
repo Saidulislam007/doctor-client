@@ -5,7 +5,7 @@ import { Calendar, Clock, User, Phone, Edit2, Trash2, X, Check, Loader2 } from "
 import { toast } from "react-hot-toast";
 
 export default function MyBookingsPage() {
-  // লাইভ স্টেট ম্যানেজমেন্ট
+  // লাইভ স্টেট ম্যানেজমেন্ট ফ্রেমওয়ার্ক
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,7 +13,7 @@ export default function MyBookingsPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingData, setEditingData] = useState(null);
 
-  // 🎯 ১. ডাটাবেজ থেকে সব অ্যাপয়েন্টমেন্ট ফেচ করে নিয়ে আসার হুক
+  // 🎯 ১. ডাটাবেজ থেকে সব অ্যাপয়েন্টমেন্ট ফেচ করে নিয়ে আসার হুক
   const fetchBookings = async () => {
     try {
       setLoading(true);
@@ -37,16 +37,27 @@ export default function MyBookingsPage() {
     fetchBookings();
   }, []);
 
-  // 🗑️ ২. ডিলিট অ্যাকশন হ্যান্ডেলার
+  // 🗑️ ২. লাইভ ডিলিট অ্যাকশন হ্যান্ডেলার (সরাসরি মঙ্গোডিবি থেকে মুছবে)
   const handleDelete = async (id, doctorName) => {
     if (confirm(`Are you sure you want to completely cancel appointment with ${doctorName}?`)) {
       try {
-        // এখানে শুধু ফ্রন্টএন্ড স্টেট ফিল্টার করা হচ্ছে (আপাতত আপনার রিকোয়েস্ট অনুযায়ী)
-        // পরবর্তীতে ডিলিট এপিআই বানালে এখানে fetch(method: "DELETE") কল হবে ভাই
-        setBookings(bookings.filter((b) => (b._id || b.id) !== id));
-        toast.success("Appointment log deleted successfully.");
+        // ব্যাকএন্ড ডিলিট এপিআই-তে রিকোয়েস্ট পাঠানো হচ্ছে
+        const response = await fetch(`http://localhost:5000/appointments/${id}`, {
+          method: "DELETE",
+        });
+
+        const data = await response.json();
+
+        // মঙ্গোডিবি থেকে ডিলিট সফল হলে ফ্রন্টএন্ড স্টেট ফিল্টার হবে
+        if (data.deletedCount > 0) {
+          setBookings(bookings.filter((b) => (b._id || b.id) !== id));
+          toast.success("Appointment log deleted successfully from database. 🎉");
+        } else {
+          toast.error("Failed to delete. Appointment not found in database.");
+        }
       } catch (err) {
-        toast.error("Failed to delete appointment.");
+        console.error("❌ Front-end Delete Error:", err.message);
+        toast.error("Failed to connect with server for deletion.");
       }
     }
   };
@@ -57,16 +68,42 @@ export default function MyBookingsPage() {
     setIsEditModalOpen(true);
   };
 
-  // 🔄 ৩. আপডেট সাবমিট হ্যান্ডেলার
+  // 🔄 ৩. লাইভ আপডেট সাবমিট হ্যান্ডেলার (আপনার ব্যাকএন্ড PUT মেথডের সাথে ইন্টিগ্রেটেড)
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
+    
+    // মঙ্গোডিবির নেটিভ _id অথবা কাস্টম id ট্র্যাক করা হচ্ছে সেফটির জন্য
+    const targetId = editingData._id || editingData.id;
+
     try {
-      // ফ্রন্টএন্ড স্টেট রিয়েল-টাইম আপডেট ম্যাপ
-      setBookings(bookings.map((b) => ((b._id || b.id) === (editingData._id || editingData.id) ? editingData : b)));
-      setIsEditModalOpen(false);
-      toast.success("Appointment schedule updated dynamically!");
+      // আপনার নতুন PUT এপিআই রাউটে ডাইনামিক আইডি দিয়ে রিকোয়েস্ট পাঠানো হচ্ছে
+      const response = await fetch(`http://localhost:5000/appointments/${targetId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          patientName: editingData.patientName,
+          patientPhone: editingData.patientPhone,
+          appointmentDate: editingData.appointmentDate,
+          timeSlot: editingData.timeSlot,
+        }),
+      });
+
+      const data = await response.json();
+
+      // মঙ্গোডিবি থেকে updateOne সফলভাবে এক্সিকিউট হলে (modifiedCount > 0 অথবা acknowledged সত্য হলে)
+      if (data.modifiedCount > 0 || data.acknowledged) {
+        // ফ্রন্টএন্ড স্টেট রিয়েল-টাইম আপডেট ম্যাপ করে দেওয়া হলো
+        setBookings(bookings.map((b) => ((b._id || b.id) === targetId ? editingData : b)));
+        setIsEditModalOpen(false);
+        toast.success("Appointment schedule updated dynamically inside MongoDB! 🚀");
+      } else {
+        toast.error("No changes made to the appointment slots.");
+      }
     } catch (err) {
-      toast.error("Failed to update appointment.");
+      console.error("❌ Front-end Update Error:", err.message);
+      toast.error("Failed to sync updated information with server.");
     }
   };
 
@@ -83,7 +120,7 @@ export default function MyBookingsPage() {
   // ❌ কন্ডিশন ২: ব্যাকএন্ড এরর বা ডাটাবেজ খালি থাকলে
   if (error || bookings.length === 0) {
     return (
-      <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center text-slate-400 font-bold max-w-4xl">
+      <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center text-slate-400 font-bold max-w-4xl mx-auto">
         No active appointments found in your database.
       </div>
     );
