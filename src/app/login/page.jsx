@@ -17,6 +17,7 @@ export default function LoginPage() {
     password: "",
   });
 
+  // 📧 ১. ইমেইল লগইন হ্যান্ডেলার (অপ্টমাইজড সিঙ্ক লজিক)
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.email || !formData.password) {
@@ -28,16 +29,35 @@ export default function LoginPage() {
       await authClient.signIn.email({
         email: formData.email,
         password: formData.password,
-        // এখানে আপনার আগের /dashboard পরিবর্তন করে সরাসরি হোম পেজ (/) রাউট দেওয়া হয়েছে
-        callbackUrl: "/", 
+        // আমরা সরাসরি রিডাইরেক্ট না করে onSuccess ব্লকের ভেতর সেফলি রিডাইরেক্ট করব
+        dontRedirect: true, 
       }, {
-        onSuccess: () => {
+        onSuccess: async (ctx) => {
           toast.success("Welcome back! Login successful.");
           
-          // ১. সাকসেসফুল লগইন শেষে ইউজারকে সরাসরি হোম পেজে রিডাইরেক্ট করা হলো
+          const loggedInUser = ctx.data?.user;
+
+          // ১. প্রথমে ব্যাকএন্ডের কাস্টম কালেকশনে ডেটা সেভ নিশ্চিত করা হচ্ছে
+          if (loggedInUser) {
+            try {
+              await fetch("http://localhost:5000/users", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  uid: loggedInUser.id,
+                  name: loggedInUser.name || "Verified Patient",
+                  email: loggedInUser.email,
+                  image: loggedInUser.image || "",
+                  lastLogin: new Date()
+                })
+              });
+            } catch (apiErr) {
+              console.error("❌ Custom DB sync failed:", apiErr.message);
+            }
+          }
+
+          // ২. ডাটাবেজ সিঙ্ক শেষে এবার সেফলি হোমপেজে রিডাইরেক্ট ও রিফ্রেশ
           router.push("/");
-          
-          // ২. নেভিগেশন বারের ক্যাশ রিসেট করে ফ্রেশ প্রোফাইল স্টেট ফিরিয়ে আনার জন্য রিফ্রেশ ট্রিকার
           router.refresh();
         },
         onError: (ctx) => {
@@ -51,12 +71,14 @@ export default function LoginPage() {
     }
   };
 
+  // 🌐 ২. গুগল সোশ্যাল লগইন হ্যান্ডেলার
   const handleGoogleLogin = async () => {
     setSocialLoading(true);
     try {
       await authClient.signIn.social({
         provider: "google",
-        // গুগল ওঅথ লগইনের ক্ষেত্রেও রিডাইরেক্ট রাউট পরিবর্তন করে হোম পেজ (/) করে দেওয়া হলো
+        // ওঅথ (OAuth) প্রোভাইডারের ক্ষেত্রে Better-Auth সরাসরি রুট পেজে নিয়ে যায়, 
+        // তাই এটার কলব্যাক ইউআরএল আমরা ব্যাকএন্ড সার্ভারের সাথে সিঙ্ক রাখতে ফ্রন্টএন্ডে রুট (/) করে দিলাম।
         callbackUrl: "/", 
       }, {
         onError: (ctx) => {
@@ -75,17 +97,15 @@ export default function LoginPage() {
       {/* Split Screen Container (Image Left, Form Right) */}
       <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-12 bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-2xl animate-[fadeIn_0.4s_ease-out]">
         
-        {/* Left Side: Premium Medical Banner with Animated Pulse Overlay */}
+        {/* Left Side: Premium Medical Banner */}
         <div className="relative md:col-span-5 bg-emerald-950 min-h-[350px] md:min-h-[600px] flex flex-col justify-between p-8 text-white overflow-hidden group">
-          {/* Background Image Layer */}
           <div 
             className="absolute inset-0 bg-cover bg-center mix-blend-overlay opacity-50 scale-100 group-hover:scale-105 transition-transform duration-700 ease-out"
             style={{ 
               backgroundImage: "url('https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=800&auto=format&fit=crop')" 
             }}
           />
-          {/* Subtle Dynamic Animated Medical Network Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/40 to-emerald-900/40 animate-[pulse_6s_infinite_alternate]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/40 to-emerald-900/40" />
 
           {/* Logo & Platform Name */}
           <div className="relative z-10 flex items-center space-x-2">
@@ -95,8 +115,8 @@ export default function LoginPage() {
             <span className="font-bold text-xl tracking-tight">MedReserve</span>
           </div>
 
-          {/* Medical Testimonial / Quote Area */}
-          <div className="relative z-10 space-y-4 mt-auto">
+          {/* Medical Testimonial */}
+          <div className="relative z-10 space-y-4 mt-auto text-left">
             <h3 className="text-xl md:text-2xl font-semibold leading-relaxed tracking-tight">
               “Empowering healthcare providers with the digital infrastructure to prioritize patient recovery.”
             </h3>
@@ -107,11 +127,10 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Right Side: Identity Core Login Form */}
+        {/* Right Side: Login Form */}
         <div className="md:col-span-7 flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 bg-white">
           <div className="max-w-md w-full mx-auto space-y-7">
             
-            {/* Header Content */}
             <div className="text-center md:text-left space-y-2">
               <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
                 Welcome back to MedReserve
@@ -121,11 +140,10 @@ export default function LoginPage() {
               </p>
             </div>
 
-            {/* Core Form Component */}
             <form className="space-y-5" onSubmit={handleSubmit}>
-              <div className="space-y-4">
+              <div className="space-y-4 text-left">
                 
-                {/* Outlined Custom Floating Label Email Input */}
+                {/* Email Input */}
                 <div className="relative border border-slate-300 focus-within:border-emerald-600 rounded-xl px-3 py-1.5 transition-colors group">
                   <label className="block text-[11px] font-medium text-slate-500 group-focus-within:text-emerald-600 uppercase tracking-wider">
                     Email
@@ -136,14 +154,14 @@ export default function LoginPage() {
                       type="email"
                       required
                       className="w-full bg-transparent p-0 border-0 text-slate-900 text-sm focus:ring-0 focus:outline-none placeholder-slate-400"
-                      placeholder="alex.jordan@gmail.com"
+                      placeholder="saidul.dev@example.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     />
                   </div>
                 </div>
 
-                {/* Outlined Custom Floating Label Password Input */}
+                {/* Password Input */}
                 <div className="relative border border-slate-300 focus-within:border-emerald-600 rounded-xl px-3 py-1.5 transition-colors group">
                   <label className="block text-[11px] font-medium text-slate-500 group-focus-within:text-emerald-600 uppercase tracking-wider">
                     Password
@@ -164,10 +182,7 @@ export default function LoginPage() {
 
               {/* Forgot Password Link */}
               <div className="flex justify-start">
-                <Link 
-                  href="#" 
-                  className="text-xs font-bold text-emerald-500 hover:text-emerald-700 transition-colors"
-                >
+                <Link href="#" className="text-xs font-bold text-emerald-500 hover:text-emerald-700 transition-colors">
                   Forgot password?
                 </Link>
               </div>
@@ -190,7 +205,7 @@ export default function LoginPage() {
                 </button>
               </div>
 
-              {/* Primary Action Button */}
+              {/* Primary Login Button */}
               <button
                 type="submit"
                 disabled={loading || socialLoading}
@@ -204,15 +219,12 @@ export default function LoginPage() {
               </button>
             </form>
 
-            {/* Custom Aesthetic Separator Line */}
             <div className="relative flex items-center justify-center">
               <div className="border-t border-slate-100 w-full" />
-              <span className="absolute bg-white px-4 text-[10px] uppercase text-slate-400 font-bold tracking-widest">
-                OR
-              </span>
+              <span className="absolute bg-white px-4 text-[10px] uppercase text-slate-400 font-bold tracking-widest">OR</span>
             </div>
 
-            {/* Social Oauth Container (Google Only Method) */}
+            {/* Google OAuth Login */}
             <div>
               <button
                 type="button"
@@ -233,7 +245,6 @@ export default function LoginPage() {
               </button>
             </div>
 
-            {/* Sign Up Redirect Link */}
             <p className="text-center text-xs text-slate-500 font-medium">
               Don't have an account?{" "}
               <Link href="/register" className="font-bold text-emerald-800 hover:text-emerald-700 transition-colors">

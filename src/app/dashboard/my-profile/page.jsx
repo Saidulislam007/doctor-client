@@ -1,31 +1,91 @@
 "use client";
 
-import { useState } from "react";
-import { User, Mail, Phone, MapPin, Save, Image, Camera } from "lucide-react";
-import { useSession } from "@/lib/auth-client"; // Better-Auth সেশন ইম্পোর্ট করা হলো
+import { useState, useEffect } from "react";
+import { User, Mail, Phone, MapPin, Save, Image, Camera, Loader2 } from "lucide-react";
+import { useSession } from "@/lib/auth-client"; // Better-Auth সেশন হুক
 import { toast } from "react-hot-toast";
 
 export default function MyProfilePage() {
-  const { data: sessionData } = useSession();
+  const { data: sessionData, isPending } = useSession(); // সেশন এবং সেশন লোডিং স্টেট ধরা হলো
+  const [loading, setLoading] = useState(false);
 
-  // সেশনে যদি ইমেজ থাকে সেটা ইনিশিয়াল ভ্যালু হিসেবে সেট হবে
+  // প্রোফাইল স্টেট ফ্রেমওয়ার্ক (শুরুতে খালি থাকবে, সেশন থেকে ডাইনামিক ডাটা লোড হবে)
   const [profile, setProfile] = useState({
-    name: "Md. Saidul Islam",
-    email: "saidul.dev@example.com",
-    phone: "+8801712345678",
-    address: "Khulna, Bangladesh",
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
     bloodGroup: "O+",
-    image: sessionData?.user?.image || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150", // ব্যাকআপ ডামি ইমেজ
+    image: "",
   });
 
-  const handleProfileUpdateSubmit = (e) => {
+  // 🎯 ১. সেশন ডাটা লোড হওয়া মাত্রই হার্ডকোডেড ডাটা রিপ্লেস করে আসল ইউজারের ডাটা স্টেটে সিঙ্ক করার হুক
+  useEffect(() => {
+    if (sessionData?.user) {
+      setProfile((prevProfile) => ({
+        ...prevProfile,
+        name: sessionData.user.name || "Verified Patient",
+        email: sessionData.user.email || "",
+        image: sessionData.user.image || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150", // ব্যাকআপ অবতার
+      }));
+    }
+  }, [sessionData]);
+
+  // 🎯 ২. ফ্রন্টএন্ড থেকে ব্যাকএন্ড এপিআই-তে ইউজার ডাটা পোস্ট করার মেইন হ্যান্ডেলার
+  const handleProfileUpdateSubmit = async (e) => {
     e.preventDefault();
+    
+    // ভ্যালিডেশন সেফটি চেক
     if (!profile.name || !profile.email || !profile.phone) {
       return toast.error("Required credential parameters cannot be left blank.");
     }
-    // ব্যাকএন্ড এপিআই কানেকশনের জন্য সিমুলেশন টোস্ট
-    toast.success("Profile records with avatar updated successfully!");
+
+    setLoading(true);
+
+    try {
+      // ⚡ ব্যাকএন্ডের কাস্টম /users এপিআই-তে POST রিকোয়েস্ট পাঠানো হচ্ছে
+      const response = await fetch("http://localhost:5000/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          uid: sessionData?.user?.id, // সেশন আইডি ট্র্যাকিং এর জন্য পাঠানো হলো
+          name: profile.name,
+          email: profile.email,
+          phone: profile.phone,
+          address: profile.address,
+          bloodGroup: profile.bloodGroup,
+          image: profile.image,
+          createdAt: new Date()
+        }),
+      });
+
+      const data = await response.json();
+
+      // ডাটাবেজে সফলভাবে ইনসার্ট হলে (MongoDB acknowledged বা insertedId রিটার্ন করলে)
+      if (data.acknowledged || data.insertedId) {
+        toast.success("Profile records saved to database successfully! 🎉");
+      } else {
+        toast.error("Failed to sync profile metrics with database.");
+      }
+    } catch (error) {
+      console.error("❌ Profile Submit Error:", error.message);
+      toast.error("Server connection failed. Please check backend port.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // ⏳ সেশন ডাটা ব্যাকএন্ড থেকে আসার পূর্ব মুহূর্ত পর্যন্ত প্রফেশনাল গ্লাস লোডার স্ক্রিন
+  if (isPending) {
+    return (
+      <div className="w-full min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
+        <Loader2 className="h-8 w-8 text-emerald-800 animate-spin shrink-0" />
+        <p className="text-xs text-slate-400 font-bold tracking-widest uppercase mt-3">Syncing Authenticated Identity Parameters...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl space-y-6 text-left">
@@ -93,7 +153,6 @@ export default function MyProfilePage() {
             </div>
           </div>
 
-          {/* ফিক্সড: প্রোফাইল পিকচার বা ইমেজের ইউআরএল পরিবর্তন করার নতুন ইনপুট ফিল্ড */}
           <div>
             <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Profile Image URL</label>
             <div className="flex items-center space-x-2 border border-slate-200 rounded-xl px-3 py-2.5 bg-slate-50 focus-within:bg-white focus-within:border-emerald-800 transition-all">
@@ -130,6 +189,7 @@ export default function MyProfilePage() {
                 type="tel"
                 required
                 className="w-full bg-transparent border-0 p-0 text-sm focus:ring-0 text-slate-800 font-semibold focus:outline-none"
+                placeholder="+8801XXXXXXXXX"
                 value={profile.phone}
                 onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
               />
@@ -143,20 +203,31 @@ export default function MyProfilePage() {
               <input
                 type="text"
                 className="w-full bg-transparent border-0 p-0 text-sm focus:ring-0 text-slate-800 font-semibold focus:outline-none"
+                placeholder="Enter your address"
                 value={profile.address}
                 onChange={(e) => setProfile({ ...profile, address: e.target.value })}
               />
             </div>
           </div>
 
+          {/* লোডিং এনিমেশন বাটন ট্রিকার */}
           <button
             type="submit"
-            className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 py-3 px-6 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold rounded-xl shadow-md transition-all pt-3 active:scale-95"
+            disabled={loading}
+            className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 py-3 px-6 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 disabled:bg-slate-300 disabled:cursor-not-allowed"
           >
-            <Save className="h-4 w-4" />
-            <span>Update Profile Data</span>
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Saving Credentials...</span>
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                <span>Update Profile Data</span>
+              </>
+            )}
           </button>
-
         </form>
       </div>
     </div>
