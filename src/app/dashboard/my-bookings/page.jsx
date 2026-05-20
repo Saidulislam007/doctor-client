@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Calendar, Clock, User, Phone, Edit2, Trash2, X, Check, Loader2 } from "lucide-react";
+import { Calendar, Clock, User, Phone, Edit2, Trash2, X, Check, Loader2, HeartPulse, Activity } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 export default function MyBookingsPage() {
-  // লাইভ স্টেট ম্যানেজমেন্ট ফ্রেমওয়ার্ক
+  // লাইভ স্টেট ম্যানেজমেন্ট ফ্রেমওয়ার্ক (লজিক অপরিবর্তিত)
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,18 +37,16 @@ export default function MyBookingsPage() {
     fetchBookings();
   }, []);
 
-  // 🗑️ ২. লাইভ ডিলিট অ্যাকশন হ্যান্ডেলার (সরাসরি মঙ্গোডিবি থেকে মুছবে)
+  // 🗑️ ২. লাইভ ডিলিট অ্যাকশন হ্যান্ডেলার
   const handleDelete = async (id, doctorName) => {
     if (confirm(`Are you sure you want to completely cancel appointment with ${doctorName}?`)) {
       try {
-        // ব্যাকএন্ড ডিলিট এপিআই-তে রিকোয়েস্ট পাঠানো হচ্ছে
         const response = await fetch(`http://localhost:5000/appointments/${id}`, {
           method: "DELETE",
         });
 
         const data = await response.json();
 
-        // মঙ্গোডিবি থেকে ডিলিট সফল হলে ফ্রন্টএন্ড স্টেট ফিল্টার হবে
         if (data.deletedCount > 0) {
           setBookings(bookings.filter((b) => (b._id || b.id) !== id));
           toast.success("Appointment log deleted successfully from database. 🎉");
@@ -68,15 +66,12 @@ export default function MyBookingsPage() {
     setIsEditModalOpen(true);
   };
 
-  // 🔄 ৩. লাইভ আপডেট সাবমিট হ্যান্ডেলার (আপনার ব্যাকএন্ড PUT মেথডের সাথে ইন্টিগ্রেটেড)
+  // 🔄 ৩. লাইভ আপডেট সাবমিট হ্যান্ডেলার
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
-    
-    // মঙ্গোডিবির নেটিভ _id অথবা কাস্টম id ট্র্যাক করা হচ্ছে সেফটির জন্য
     const targetId = editingData._id || editingData.id;
 
     try {
-      // আপনার নতুন PUT এপিআই রাউটে ডাইনামিক আইডি দিয়ে রিকোয়েস্ট পাঠানো হচ্ছে
       const response = await fetch(`http://localhost:5000/appointments/${targetId}`, {
         method: "PUT",
         headers: {
@@ -92,9 +87,7 @@ export default function MyBookingsPage() {
 
       const data = await response.json();
 
-      // মঙ্গোডিবি থেকে updateOne সফলভাবে এক্সিকিউট হলে (modifiedCount > 0 অথবা acknowledged সত্য হলে)
       if (data.modifiedCount > 0 || data.acknowledged) {
-        // ফ্রন্টএন্ড স্টেট রিয়েল-টাইম আপডেট ম্যাপ করে দেওয়া হলো
         setBookings(bookings.map((b) => ((b._id || b.id) === targetId ? editingData : b)));
         setIsEditModalOpen(false);
         toast.success("Appointment schedule updated dynamically inside MongoDB! 🚀");
@@ -107,96 +100,176 @@ export default function MyBookingsPage() {
     }
   };
 
-  // ⏳ কন্ডিশন ১: ব্যাকএন্ড থেকে ডাটা আসার আগ পর্যন্ত প্রফেশনাল লোডার
+  // ⏳ কন্ডিশন ১: প্রফেশনাল গ্লসি লোডার
   if (loading) {
     return (
-      <div className="w-full min-h-[50vh] flex flex-col items-center justify-center bg-transparent">
-        <Loader2 className="h-8 w-8 text-emerald-800 animate-spin shrink-0" />
-        <p className="text-xs text-slate-400 font-bold tracking-widest uppercase mt-3">Syncing Your Active Appointments...</p>
+      <div className="w-full min-h-[55vh] flex flex-col items-center justify-center bg-transparent">
+        <div className="p-4 bg-emerald-50 rounded-full text-emerald-800 animate-pulse mb-3">
+          <Loader2 className="h-8 w-8 animate-spin shrink-0" />
+        </div>
+        <p className="text-xs text-slate-400 font-bold tracking-widest uppercase">Syncing Active Care Schedules...</p>
       </div>
     );
   }
 
-  // ❌ কন্ডিশন ২: ব্যাকএন্ড এরর বা ডাটাবেজ খালি থাকলে
+  // ❌ কন্ডিশন ২: ডাটাবেজ খালি থাকলে প্রিমিয়াম এম্পটি স্টেট
   if (error || bookings.length === 0) {
     return (
-      <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center text-slate-400 font-bold max-w-4xl mx-auto">
-        No active appointments found in your database.
+      <div className="bg-white border border-slate-100 rounded-[32px] p-16 text-center max-w-xl mx-auto shadow-sm space-y-4 my-10 animate-[fadeIn_0.3s_ease-out]">
+        <div className="mx-auto w-16 h-16 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center border border-slate-100">
+          <Activity className="h-8 w-8 stroke-[1.5]" />
+        </div>
+        <div className="space-y-1">
+          <h3 className="text-slate-800 font-black text-lg">No Appointments Found</h3>
+          <p className="text-sm text-slate-400 font-medium max-w-xs mx-auto">Your medical scheduling history is currently empty. Book a consultation to see active slots.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl space-y-6 text-left">
-      <div>
-        <h1 className="text-2xl font-black text-slate-900 tracking-tight">My Active Appointments</h1>
-        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mt-1">Real-time scheduling panel</p>
+    <div className="max-w-4xl space-y-8 text-left animate-[fadeIn_0.4s_ease-out] pb-10">
+      
+      {/* Page Header */}
+      {/* ================= HERO HEADING CARD (SCREENSHOT THEMING) ================= */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-950 to-emerald-950 p-6 sm:p-8 rounded-[32px] shadow-xl border border-slate-800 text-white group mb-8">
+        {/* Background Subtle Geometric Glow Patterns */}
+        <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-[60px] pointer-events-none" />
+        <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-teal-500/5 rounded-full blur-[40px] pointer-events-none" />
+        
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-5 text-left">
+          
+          {/* Left Side Texts */}
+          <div className="space-y-3">
+            <div className="inline-flex items-center space-x-2 bg-emerald-500/15 backdrop-blur-md text-emerald-400 px-3.5 py-1.5 rounded-xl text-xs font-black tracking-wide border border-emerald-500/20 uppercase">
+              <HeartPulse className="h-3.5 w-3.5 stroke-[2.5]" />
+              <span>Clinical Consultation Deck</span>
+            </div>
+            
+            <div className="space-y-1">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-none bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">
+                My Active Appointments
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-400 font-medium max-w-xl leading-relaxed">
+                Review and manage your real-time scheduled consultation sessions, secure active slots, or adjust timelines instantly.
+              </p>
+            </div>
+          </div>
+
+          {/* Right Side Counter Badge (Screenshot Style Widget) */}
+          <div className="inline-flex items-center space-x-2.5 bg-slate-900/40 backdrop-blur-sm px-4 py-3 rounded-2xl border border-slate-800/80 shrink-0 self-start sm:self-center shadow-inner group-hover:border-emerald-800/30 transition-all duration-300">
+            <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl animate-pulse">
+              <HeartPulse className="h-4 w-4" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider leading-none">Status</span>
+              <span className="text-xs font-black text-slate-200 mt-1">{bookings.length} Slots Locked</span>
+            </div>
+          </div>
+
+        </div>
       </div>
 
       {/* Grid Cards Container Layout */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {bookings.map((item) => (
-          <div key={item._id || item.id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 hover:border-emerald-800/20 transition-all">
-            <div className="space-y-3">
-              <div className="border-b border-slate-100 pb-2">
-                <h3 className="font-bold text-slate-900 text-lg leading-tight">{item.doctorName || "Verified Doctor"}</h3>
-                <p className="text-xs font-bold text-emerald-800 mt-0.5">{item.specialty || "General Specialist"}</p>
+          <div key={item._id || item.id} className="bg-white border border-slate-200/60 rounded-[28px] p-6 shadow-sm flex flex-col justify-between space-y-5 hover:shadow-xl hover:border-emerald-800/10 transition-all duration-300 relative group top-0 hover:-top-1">
+            
+            <div className="space-y-4">
+              {/* Header inside card */}
+              <div className="border-b border-slate-100 pb-3 flex justify-between items-start">
+                <div className="space-y-0.5">
+                  <h3 className="font-black text-slate-900 text-lg leading-tight group-hover:text-emerald-800 transition-colors">{item.doctorName || "Verified Doctor"}</h3>
+                  <p className="text-xs font-extrabold text-emerald-800 uppercase tracking-wide">{item.specialty || "General Specialist"}</p>
+                </div>
+                {/* Active Schedule Badge */}
+                <span className="flex items-center space-x-1.5 bg-emerald-50 text-[10px] font-black text-emerald-800 px-2.5 py-1 rounded-lg border border-emerald-100/50">
+                  <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                  <span>Active</span>
+                </span>
               </div>
-              <div className="space-y-1.5 text-xs text-slate-500 font-semibold">
-                <p className="flex items-center space-x-2"><User className="h-3.5 w-3.5 text-slate-400" /> <span>Patient: <strong className="text-slate-800">{item.patientName}</strong></span></p>
-                <p className="flex items-center space-x-2"><Phone className="h-3.5 w-3.5 text-slate-400" /> <span>Contact: {item.patientPhone}</span></p>
-                <p className="flex items-center space-x-2"><Calendar className="h-3.5 w-3.5 text-emerald-800" /> <span>Date: <span className="text-slate-800">{item.appointmentDate}</span></span></p>
-                <p className="flex items-center space-x-2"><Clock className="h-3.5 w-3.5 text-emerald-800" /> <span>Slot: <span className="text-slate-800">{item.timeSlot}</span></span></p>
+
+              {/* Patient Core Credentials */}
+              <div className="grid grid-cols-1 gap-2.5 text-xs text-slate-500 font-semibold bg-slate-50/50 p-3.5 rounded-2xl border border-slate-100">
+                <p className="flex items-center space-x-2.5"><User className="h-4 w-4 text-slate-400 shrink-0" /> <span>Patient: <strong className="text-slate-800 font-extrabold">{item.patientName}</strong></span></p>
+                <p className="flex items-center space-x-2.5"><Phone className="h-4 w-4 text-slate-400 shrink-0" /> <span>Contact: <span className="text-slate-700">{item.patientPhone}</span></span></p>
+                <p className="flex items-center space-x-2.5"><Calendar className="h-4 w-4 text-emerald-800 shrink-0" /> <span>Date: <span className="text-slate-900 font-bold">{item.appointmentDate}</span></span></p>
+                <p className="flex items-center space-x-2.5"><Clock className="h-4 w-4 text-emerald-800 shrink-0" /> <span>Slot: <span className="text-slate-900 font-bold">{item.timeSlot}</span></span></p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-50">
-              <button onClick={() => handleOpenUpdateModal(item)} className="inline-flex items-center justify-center space-x-1.5 py-2 px-3 border border-slate-200 hover:border-emerald-800 text-xs font-bold text-slate-700 rounded-xl transition-all">
-                <Edit2 className="h-3.5 w-3.5 text-slate-400" /> <span>Update</span>
+            {/* Premium Button Trigger Panel */}
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <button 
+                onClick={() => handleOpenUpdateModal(item)} 
+                className="inline-flex items-center justify-center space-x-2 py-2.5 px-4 bg-white border border-slate-200 hover:border-emerald-800 rounded-xl text-xs font-black text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 active:scale-95"
+              >
+                <Edit2 className="h-3.5 w-3.5 text-slate-400 group-hover:text-emerald-800 transition-colors" /> 
+                <span>Reschedule</span>
               </button>
-              <button onClick={() => handleDelete(item._id || item.id, item.doctorName)} className="inline-flex items-center justify-center space-x-1.5 py-2 px-3 bg-rose-50 text-xs font-bold text-rose-700 rounded-xl hover:bg-rose-100 transition-all">
-                <Trash2 className="h-3.5 w-3.5" /> <span>Delete</span>
+              <button 
+                onClick={() => handleDelete(item._id || item.id, item.doctorName)} 
+                className="inline-flex items-center justify-center space-x-2 py-2.5 px-4 bg-rose-50 hover:bg-rose-100 text-xs font-black text-rose-700 rounded-xl shadow-sm transition-all hover:-translate-y-0.5 active:scale-95"
+              >
+                <Trash2 className="h-3.5 w-3.5" /> 
+                <span>Cancel</span>
               </button>
             </div>
+
           </div>
         ))}
       </div>
 
-      {/* Dynamic Pop-up Modal Component */}
+      {/* ================= DYNAMIC MODAL COMPONENT (GLASS MORPHISM LOOK) ================= */}
       {isEditModalOpen && editingData && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md border border-slate-200 shadow-xl overflow-hidden">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <h3 className="font-bold text-slate-900">Modify Appointment Information</h3>
-              <button onClick={() => setIsEditModalOpen(false)} className="p-1 text-slate-400 hover:bg-slate-200 rounded-lg"><X className="h-4 w-4" /></button>
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-white rounded-[32px] w-full max-w-md border border-slate-200/80 shadow-2xl overflow-hidden animate-[scaleUp_0.3s_ease-out]">
+            
+            {/* Modal Top Branding bar */}
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+              <div className="flex items-center space-x-2 text-slate-800">
+                <Activity className="h-4 w-4 text-emerald-800" />
+                <h3 className="font-black text-sm text-slate-900">Modify Consultation Schedule</h3>
+              </div>
+              <button onClick={() => setIsEditModalOpen(false)} className="p-1.5 text-slate-400 hover:bg-slate-200 hover:text-slate-700 rounded-xl transition-all"><X className="h-4 w-4" /></button>
             </div>
-            <form onSubmit={handleUpdateSubmit} className="p-5 space-y-4">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Patient Name</label>
-                <input type="text" required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold" value={editingData.patientName} onChange={(e) => setEditingData({ ...editingData, patientName: e.target.value })} />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Phone Number</label>
-                <input type="tel" required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold" value={editingData.patientPhone} onChange={(e) => setEditingData({ ...editingData, patientPhone: e.target.value })} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Date</label>
-                  <input type="date" required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold" value={editingData.appointmentDate} onChange={(e) => setEditingData({ ...editingData, appointmentDate: e.target.value })} />
+
+            {/* Modal Input Content Form */}
+            <form onSubmit={handleUpdateSubmit} className="p-6 space-y-4">
+              <div className="space-y-3.5">
+                <div className="text-left">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5 ml-0.5">Patient Name</label>
+                  <input type="text" required className="w-full bg-slate-50 focus:bg-white border border-slate-200 focus:border-emerald-800 focus:ring-0 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-800 focus:outline-none transition-all" value={editingData.patientName} onChange={(e) => setEditingData({ ...editingData, patientName: e.target.value })} />
                 </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Time Slot</label>
-                  <select required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold cursor-pointer" value={editingData.timeSlot} onChange={(e) => setEditingData({ ...editingData, timeSlot: e.target.value })} >
-                    <option value="05:00 PM - 05:30 PM">05:00 PM - 05:30 PM</option>
-                    <option value="05:30 PM - 06:00 PM">05:30 PM - 06:00 PM</option>
-                    <option value="06:30 PM - 07:00 PM">06:30 PM - 07:00 PM</option>
-                  </select>
+                
+                <div className="text-left">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5 ml-0.5">Phone Number</label>
+                  <input type="tel" required className="w-full bg-slate-50 focus:bg-white border border-slate-200 focus:border-emerald-800 focus:ring-0 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-800 focus:outline-none transition-all" value={editingData.patientPhone} onChange={(e) => setEditingData({ ...editingData, patientPhone: e.target.value })} />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 text-left">
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5 ml-0.5">Consultation Date</label>
+                    <input type="date" required className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-800 focus:ring-0 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none cursor-pointer transition-all" value={editingData.appointmentDate} onChange={(e) => setEditingData({ ...editingData, appointmentDate: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5 ml-0.5">Preferred Time Slot</label>
+                    <select required className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-800 focus:ring-0 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none cursor-pointer transition-all" value={editingData.timeSlot} onChange={(e) => setEditingData({ ...editingData, timeSlot: e.target.value })} >
+                      <option value="05:00 PM - 05:30 PM">05:00 PM - 05:30 PM</option>
+                      <option value="05:30 PM - 06:00 PM">05:30 PM - 06:00 PM</option>
+                      <option value="06:30 PM - 07:00 PM">06:30 PM - 07:00 PM</option>
+                    </select>
+                  </div>
                 </div>
               </div>
-              <button type="submit" className="w-full flex items-center justify-center space-x-1.5 py-3 bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-md hover:bg-emerald-900 mt-2">
-                <Check className="h-4 w-4" /> <span>Save & Re-schedule</span>
+
+              {/* Submit CTA button */}
+              <button type="submit" className="w-full flex items-center justify-center space-x-2 py-3 bg-emerald-800 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-950/10 hover:bg-emerald-900 active:scale-95 transition-all mt-4">
+                <Check className="h-4 w-4 stroke-[2.5]" /> 
+                <span>Save & Confirm Re-schedule</span>
               </button>
             </form>
+
           </div>
         </div>
       )}

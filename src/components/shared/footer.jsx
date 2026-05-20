@@ -88,7 +88,7 @@ export default function Footer() {
         {/* ইমেজের হাইট h-28 থেকে কমিয়ে h-20 করা হয়েছে যাতে ফুটারের উচ্চতা অনেক কমে আসে */}
         <div className="relative w-36 h-20 overflow-hidden rounded-xl border-4 border-emerald-800/40 shadow-md transform hover:scale-[1.02] transition-transform duration-300">
           <img 
-            src="https://images.unsplash.com/photo-1582213726894-448e46924829?q=80&w=400&auto=format&fit=crop" 
+            src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?q=80&w=1600&auto=format&fit=crop" 
             alt="MedReserve clinical team care" 
             className="w-full h-full object-cover"
           />
