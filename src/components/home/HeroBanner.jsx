@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Stethoscope, ShieldCheck, Sparkles, ArrowRight } from "lucide-react";
+import TickerNotice from "./TickerNotice";
 
 export default function HeroBanner() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -157,6 +158,7 @@ export default function HeroBanner() {
         </div>
 
       </div>
+      <TickerNotice />
     </div>
   );
 }

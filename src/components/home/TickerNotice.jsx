@@ -35,31 +35,40 @@ export default function TickerNotice() {
   const doubleNotices = [...notices, ...notices];
 
   return (
-    <div className="w-full bg-emerald-900 mt-[-40px] text-emerald-100 py-3 border-y border-emerald-950 overflow-hidden relative shadow-inner">
+    // 🎯 আপনার দেওয়া কাঙ্ক্ষিত ক্লাসগুলো (bg-white/40, backdrop-blur-sm, border-b) এখানে নিখুঁতভাবে ব্লাইন্ড করা হয়েছে
+    <div className="w-full bg-white/20 backdrop-blur-sm border-b border-slate-200/80 mt-[-40px] py-3.5 overflow-hidden relative shadow-sm z-40 select-none">
       
-      {/* LIVE Badge */}
-      <div className="absolute left-0 top-0 bottom-0 bg-emerald-950 px-4 flex items-center z-20 font-bold text-xs uppercase tracking-widest border-r border-emerald-800 text-white shadow-md">
-        <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-ping mr-2" />
-        Live Updates
+      {/* ================= LIVE BADGE (MATCHING LIGHT GLASS UX) ================= */}
+      <div className="absolute left-0 top-0 bottom-0 bg-white/90 backdrop-blur-sm px-5 flex items-center z-20 font-black text-[10px] uppercase tracking-widest border-r border-slate-200 text-slate-900 shadow-sm">
+        <span className="relative flex h-2 w-2 mr-2.5">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
+        </span>
+        <span className="font-extrabold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">Live Updates</span>
       </div>
 
-      {/* Ticker */}
-      <div className="flex overflow-hidden pl-[130px]">
-        <div className="flex min-w-max space-x-16 items-center whitespace-nowrap animate-ticker hover:[animation-play-state:paused] cursor-pointer">
+      {/* ================= TICKER SCROLLER CONTAINER ================= */}
+      <div className="flex overflow-hidden pl-[145px]">
+        <div className="flex min-w-max space-x-12 items-center whitespace-nowrap animate-ticker hover:[animation-play-state:paused] cursor-pointer">
           {doubleNotices.map((notice, index) => {
             const Icon = notice.icon;
 
             return (
               <div
                 key={index}
-                className="flex items-center space-x-2.5 text-sm font-medium tracking-wide shrink-0"
+                className="flex items-center space-x-3 text-xs sm:text-sm font-bold tracking-wide shrink-0 text-slate-800 transition-colors duration-200 hover:text-black"
               >
-                <Icon className="h-4 w-4 text-emerald-400 shrink-0" />
+                {/* আইকন হোল্ডার মেকানিজম */}
+                <div className="p-1.5 bg-emerald-800/10 rounded-xl text-emerald-800 shadow-sm border border-emerald-800/5">
+                  <Icon className="h-3.5 w-3.5 shrink-0 stroke-[2.5]" />
+                </div>
 
-                <span>{notice.text}</span>
+                {/* ক্লিয়ার ব্ল্যাক টেক্সট অপ্টিমাইজেশন */}
+                <span className="text-slate-800 font-extrabold tracking-tight">{notice.text}</span>
 
-                <span className="text-emerald-700 font-extrabold mx-4">
-                  |
+                {/* গ্লাসি সেপারেটর নোড */}
+                <span className="text-emerald-800/30 font-black px-1 select-none text-sm">
+                  ✦
                 </span>
               </div>
             );
@@ -67,8 +76,8 @@ export default function TickerNotice() {
         </div>
       </div>
 
-      {/* Right Fade */}
-      <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-emerald-900 to-transparent pointer-events-none z-10" />
+      {/* ================= RIGHT FADE MASK OVERLAY (LIGHT MODE EDGE) ================= */}
+      <div className="absolute right-0 top-0 bottom-0 w-28 bg-gradient-to-l from-white via-white/50 to-transparent pointer-events-none z-10" />
     </div>
   );
 }

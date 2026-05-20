@@ -33,7 +33,7 @@ export default function Home() {
     <div className="space-y-10">
       {/* Hero Section */}
       <HeroBanner></HeroBanner>
-      <TickerNotice></TickerNotice>
+      
 
       <StatsSection></StatsSection>
 
