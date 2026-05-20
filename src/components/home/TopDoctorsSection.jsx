@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react"; // 🎯 useRef যুক্ত করা হলো
 import Link from "next/link";
 import { Star, ShieldCheck, ArrowRight, MapPin, Clock, Loader2 } from "lucide-react";
 
@@ -8,7 +8,11 @@ export default function TopDoctorsSection() {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ব্যাকএন্ড এপিআই থেকে ডাক্তারদের ডেটা নিয়ে আসার হুক
+  // 🎯 স্ক্রল অ্যানিমেশন ট্র্যাকিং স্টেট এবং রেফারেন্স
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef(null);
+
+  // ব্যাকএন্ড এপিআই থেকে ডাক্তারদের ডেটা নিয়ে আসার হুক
   useEffect(() => {
     const fetchTopDoctors = async () => {
       try {
@@ -26,7 +30,25 @@ export default function TopDoctorsSection() {
     fetchTopDoctors();
   }, []);
 
-  // ১. রেটিং অনুযায়ী সর্বোচ্চ থেকে সর্বনিম্ন (Descending Order) সর্ট করে প্রথম ৩ জন ফিল্টার
+  // 🎯 টেস্টোমনিয়াল পেজের মতো ইন্টারসেকশন অবজারভার হুক ইন্টিগ্রেশন
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.05 } // সেকশনটির মাত্র ৫% স্ক্রিনে আসলেই কার্ড অ্যানিমেশন শুরু হবে
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [loading]); // লোডিং শেষ হওয়ার পর অবজারভারকে ট্রিক করা সেফ প্র্যাকটিস
+
+  // ১. রেটিং অনুযায়ী সর্বোচ্চ থেকে সর্বনিম্ন (Descending Order) সর্ট করে প্রথম ৩ জন ফিল্টার
   const topRatedDoctors = [...doctors]
     .sort((a, b) => Number(b.rating) - Number(a.rating))
     .slice(0, 3);
@@ -45,7 +67,7 @@ export default function TopDoctorsSection() {
   if (topRatedDoctors.length === 0) return null;
 
   return (
-    <section className="w-full py-24 bg-gradient-to-b from-slate-50/50 to-white overflow-hidden">
+    <section ref={sectionRef} className="w-full py-24 bg-gradient-to-b from-slate-50/50 to-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* ================= SECTION HEADER ================= */}
@@ -69,7 +91,14 @@ export default function TopDoctorsSection() {
           {topRatedDoctors.map((doctor, index) => (
             <div
               key={doctor.id || doctor._id}
-              className="bg-white border border-slate-200/80 rounded-[32px] overflow-hidden shadow-sm hover:shadow-2xl hover:border-emerald-800/10 transition-all duration-500 flex flex-col group relative top-0 hover:-top-3"
+              // 🎯 ফিক্সড: টেস্টোমনিয়াল সেকশনের মতো নিচ থেকে ৯৯পিক্সেল ওপরে ওঠার অ্যানিমেশন এবং অপাসিটি ট্রানজিশন ম্যাপ করা হলো
+              className={`bg-white border border-slate-200/80 rounded-[32px] overflow-hidden shadow-sm hover:shadow-2xl hover:border-emerald-800/10 flex flex-col group relative top-0 hover:-top-3 transition-all duration-750 ${
+                isVisible ? "animate-slideInUp opacity-100" : "opacity-0 translate-y-[90px]"
+              }`}
+              style={{
+                // 🎯 ফিক্সড: একটার পর আরেকটা ডক্টর কার্ড আসার মাঝখানের গ্যাপ ২৫০ms মেইনটেইন করা হলো
+                animationDelay: isVisible ? `${index * 250}ms` : "0ms",
+              }}
             >
               
               {/* Image Container with Zoom Animation */}
@@ -81,7 +110,7 @@ export default function TopDoctorsSection() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-transparent" />
                 
-                {/* 🎯 আপনার আপডেট করা কাঙ্ক্ষিত রেটিং স্কোরসহ ডাইনামিক ব্যাজ */}
+                {/* আপনার আপডেট করা কাঙ্ক্ষিত রেটিং স্কোরসহ ডাইনামিক ব্যাজ */}
                 <div className="absolute top-4 left-4 bg-emerald-800/95 backdrop-blur-md text-white text-[10px] font-black px-3 py-1.5 rounded-xl tracking-wider shadow-md flex items-center space-x-1.5">
                   <span className="text-amber-400 font-extrabold text-xs">★ {Number(doctor.rating).toFixed(1)}</span>
                   <span className="text-white/40 font-normal">|</span>
@@ -139,7 +168,7 @@ export default function TopDoctorsSection() {
                   </div>
                   
                   <Link
-                    href={`/appointments/${doctor.id}`}
+                    href={`/appointments/${doctor.id || doctor._id}`}
                     className="inline-flex items-center space-x-2 bg-slate-900 hover:bg-emerald-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all duration-300 active:scale-95 shadow-sm shadow-slate-100 group/btn"
                   >
                     <span>View Profile</span>

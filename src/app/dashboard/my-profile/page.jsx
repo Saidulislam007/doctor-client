@@ -19,19 +19,19 @@ export default function MyProfilePage() {
     image: "",
   });
 
-  // 🎯 ১. সেশন ডাটা লোড হওয়া মাত্রই হার্ডকোডেড ডাটা রিপ্লেস করে আসল ইউজারের ডাটা স্টেটে সিঙ্ক করার হুক
+  // 🎯 ১. সেশন ডাটা লোড হওয়া মাত্রই হার্ডকোডেড ডাটা রিপ্লেস করে আসল ইউজারের ডাটা স্টেটে সিঙ্ক করার হুক
   useEffect(() => {
     if (sessionData?.user) {
       setProfile((prevProfile) => ({
         ...prevProfile,
         name: sessionData.user.name || "Verified Patient",
         email: sessionData.user.email || "",
-        image: sessionData.user.image || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150", // ব্যাকআপ অবতার
+        image: sessionData.user.image || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150", // backup avatar
       }));
     }
   }, [sessionData]);
 
-  // 🎯 ২. ফ্রন্টএন্ড থেকে ব্যাকএন্ড এপিআই-তে ইউজার ডাটা পোস্ট করার মেইন হ্যান্ডেলার
+  // 🎯 ২. ফ্রন্টএন্ড থেকে ব্যাকএন্ড এপিআই-তে ইউজার ডাটা পাঠিয়ে UPDATE/PUT করার মেইন হ্যান্ডেলার
   const handleProfileUpdateSubmit = async (e) => {
     e.preventDefault();
     
@@ -43,36 +43,35 @@ export default function MyProfilePage() {
     setLoading(true);
 
     try {
-      // ⚡ ব্যাকএন্ডের কাস্টম /users এপিআই-তে POST রিকোয়েস্ট পাঠানো হচ্ছে
-      const response = await fetch("http://localhost:5000/users", {
-        method: "POST",
+      // ⚡ আপনার নতুন ব্যাকএন্ড PUT এপিআই রাউটে ইউজারের ইউনিক ইমেইল পাঠিয়ে হিট করা হচ্ছে
+      const response = await fetch(`http://localhost:5000/users/${profile.email}`, {
+        method: "PUT", // POST পরিবর্তন করে PUT মেথড করা হলো রিয়েল-টাইম আপডেটের জন্য
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          uid: sessionData?.user?.id, // সেশন আইডি ট্র্যাকিং এর জন্য পাঠানো হলো
+          uid: sessionData?.user?.id, // সেশন আইডি ট্র্যাকিং
           name: profile.name,
-          email: profile.email,
           phone: profile.phone,
           address: profile.address,
           bloodGroup: profile.bloodGroup,
           image: profile.image,
-          createdAt: new Date()
         }),
       });
 
       const data = await response.json();
 
-      // ডাটাবেজে সফলভাবে ইনসার্ট হলে (MongoDB acknowledged বা insertedId রিটার্ন করলে)
-      if (data.acknowledged || data.insertedId) {
-        toast.success("Profile records saved to database successfully! 🎉");
+      // মঙ্গোডিবি থেকে updateOne সফল হলে (modifiedCount > 0 বা acknowledged ট্রু হলে)
+      if (data.acknowledged || data.modifiedCount > 0) {
+        toast.success("Profile metrics synced and updated in database successfully! 🎉");
       } else {
         toast.error("Failed to sync profile metrics with database.");
       }
     } catch (error) {
-      console.error("❌ Profile Submit Error:", error.message);
+      console.error("❌ Profile Update Submit Error:", error.message);
       toast.error("Server connection failed. Please check backend port.");
     } finally {
+      setProfile((prev) => ({ ...prev })); // UI স্টেট স্ট্যাবল রাখার জন্য
       setLoading(false);
     }
   };
@@ -174,7 +173,8 @@ export default function MyProfilePage() {
               <input
                 type="email"
                 required
-                className="w-full bg-transparent border-0 p-0 text-sm focus:ring-0 text-slate-800 font-semibold focus:outline-none"
+                disabled // ইমেইল হলো প্রাইমারি কি ফিল্টার, তাই এটি চেঞ্জ করতে না দেওয়া সিকিউর প্র্যাকটিস ভাই
+                className="w-full bg-transparent border-0 p-0 text-sm focus:ring-0 text-slate-400 font-semibold focus:outline-none disabled:cursor-not-allowed"
                 value={profile.email}
                 onChange={(e) => setProfile({ ...profile, email: e.target.value })}
               />
@@ -210,6 +210,7 @@ export default function MyProfilePage() {
             </div>
           </div>
 
+          {/* লোডিং এনিমেশন বাটন */}
           <button
             type="submit"
             disabled={loading}
