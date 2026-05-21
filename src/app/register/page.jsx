@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
@@ -18,6 +18,10 @@ export default function RegisterPage() {
     image: "", // Photo URL
     password: "",
   });
+  useEffect(() => {
+    // 🎯 এই লাইনের কারণে ব্রাউজার ট্যাব সরাসরি চেঞ্জ হয়ে যাবে ভাই!
+    document.title = "Register | MedReserve"; 
+  }, []);
 
   const [passwordError, setPasswordError] = useState("");
 

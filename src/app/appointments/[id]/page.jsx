@@ -8,35 +8,57 @@ import { Star, ArrowLeft, Calendar, Award, MapPin, CheckCircle2, Loader2 } from 
 export default function DoctorDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const doctorId = params.id; // ডাইনামিক আইডি ইউআরএল থেকে রিড করা হচ্ছে
+  
+  // 🎯 ১. নেক্সট জেএস ইউআরএল থেকে আইডি সেফলি রিসিভ করা হলো ভাই
+  const doctorId = params.id; 
 
-  // লাইভ ডাটা এবং লোডিং ম্যানেজমেন্ট স্টেট
+  // 🎯 ২. রিয়্যাক্ট রুলস অনুযায়ী সব স্টেট হুক সবার ওপরে ডিক্লেয়ার করা হলো
   const [doctor, setDoctor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 🎯 ব্যাকএন্ড এপিআই থেকে নির্দিষ্ট ডাক্তারের ডেটা ফেচ করার ইফেক্ট হুক
+
+  // 🎯 ব্রাউজার ট্যাবের নাম ডাইনামিকালি চেঞ্জ করার ম্যাজিক হুক ভাই!
+useEffect(() => {
+  if (doctor && doctor.name) {
+    // ডাক্তার ডাটা লোড হলে ট্যাবে ডাক্তারের নাম দেখাবে ভাই
+    document.title = `${doctor.name} | MedReserve`;
+  } else {
+    // ডাটা লোড হওয়ার আগ পর্যন্ত বা এরর থাকলে ডিফল্ট নাম থাকবে
+    document.title = "Doctor Details | MedReserve";
+  }
+
+  // 🎯 ক্লিনআপ ফাংশন: ইউজার যখন এই পেজ থেকে বের হয়ে যাবে, তখন টাইটেল আগের মতো হয়ে যাবে
+  return () => {
+    document.title = "MedReserve | Premier Doctor Appointment";
+  };
+}, [doctor]); // doctor স্টেট চেঞ্জ হলেই এটি রান করবে ভাই
+
+  // 🎯 ৩. লাইভ ব্যাকএন্ড থেকে নির্দিষ্ট ডাক্তারের ডাটা নিয়ে আসার সিঙ্কড হুক
   useEffect(() => {
     const fetchDoctorDetails = async () => {
+      // সুরক্ষার জন্য কন্ডিশনাল চেক (আইডি না আসা পর্যন্ত ফেচ কল টোটালি অফ থাকবে)
+      if (!doctorId || doctorId === "undefined") return;
+
       try {
         setLoading(true);
-        // আপনার ব্যাকএন্ডের অল-ডক্টরস এপিআই কল করা হচ্ছে
-        const response = await fetch("http://localhost:5000/doctors");
+        setError(null);
+        
+        // ডাইনামিক সিঙ্গেল ডক্টর এন্ডপয়েন্টে হিট করা হলো
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/doctors/${doctorId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include" // 🎯 Better Auth সেশন কুকি ব্যাকএন্ডে পাস করানোর মাস্টার কি!
+        });
         
         if (!response.ok) {
-          throw new Error("Failed to fetch doctors from server");
+          throw new Error("Doctor profile not found or server offline");
         }
         
-        const doctorsData = await response.json();
-        
-        // এপিআই থেকে আসা সম্পূর্ণ ডাটাবেজ অ্যারে থেকে কাঙ্ক্ষিত আইডিটি খুঁজে বের করা হচ্ছে
-        const foundDoctor = doctorsData.find((doc) => doc.id === doctorId);
-        
-        if (foundDoctor) {
-          setDoctor(foundDoctor);
-        } else {
-          setError("Doctor profile not found in the database");
-        }
+        const data = await response.json();
+        setDoctor(data);
       } catch (err) {
         console.error("❌ Fetching details error:", err.message);
         setError(err.message || "Something went wrong while loading doctor details");
@@ -45,12 +67,10 @@ export default function DoctorDetailsPage() {
       }
     };
 
-    if (doctorId) {
-      fetchDoctorDetails();
-    }
-  }, [doctorId]);
+    fetchDoctorDetails();
+  }, [doctorId]); // 🎯 doctorId চেঞ্চ হলেই কেবল এই হুকটি আবার রান করবে ভাই
 
-  // ⏳ কন্ডিশন ১: ডাটা লোড হওয়ার সময় প্রফেশনাল স্পিনার লোডার স্ক্রিন
+  // ⏳ কন্ডিশন ১: ডাটা লোড হওয়ার সময় প্রফেশনাল স্পিনার লোডার স্ক্রিন
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50/60 p-4">
@@ -60,7 +80,7 @@ export default function DoctorDetailsPage() {
     );
   }
 
-  // ❌ কন্ডিশন ২: যদি আইডি ভুল হয় বা ব্যাকএন্ড কানেকশন এরর আসে
+  // ❌ কন্ডিশন ২: যদি আইডি ডাটাবেজে না মিলে বা ব্যাকএন্ড কানেকশন ফেল করে
   if (error || !doctor) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
@@ -73,7 +93,7 @@ export default function DoctorDetailsPage() {
     );
   }
 
-  // ✅ কন্ডিশন ৩: ডাটা সফলভাবে চলে আসলে মূল পেজ রেন্ডার
+  // ✅ কন্ডিশন ৩: ডাটা সফলভাবে চলে আসলে মূল পেজ রেন্ডার হবে ভাই
   return (
     <div className="min-h-screen bg-slate-50/60 py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
@@ -105,7 +125,7 @@ export default function DoctorDetailsPage() {
                 <div className="flex items-center space-x-1 bg-slate-50 border border-slate-200 px-2.5 py-0.5 rounded-lg">
                   <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
                   <span className="text-sm font-black text-slate-800">{Number(doctor.rating).toFixed(1)}</span>
-                  <span className="text-xs text-slate-400 font-bold">({doctor.reviews} Reviews)</span>
+                  <span className="text-xs text-slate-400 font-bold">({doctor.reviews || 0} Reviews)</span>
                 </div>
               </div>
 
@@ -113,16 +133,15 @@ export default function DoctorDetailsPage() {
                 <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
                   {doctor.name}
                 </h1>
-                {/* অ্যারে মেথড সেফ করার জন্য কন্ডিশনাল চেকিং দেওয়া হয়েছে */}
                 <p className="text-xs font-bold text-slate-400 mt-1 flex items-center space-x-1">
                   <Award className="h-3.5 w-3.5 text-emerald-700 shrink-0" />
-                  <span>{Array.isArray(doctor.degrees) ? doctor.degrees.join(" • ") : doctor.degrees}</span>
+                  <span>{Array.isArray(doctor.degrees) ? doctor.degrees.join(" • ") : doctor.degrees || "MBBS"}</span>
                 </p>
               </div>
 
               <div className="pt-2">
                 <p className="text-slate-600 text-sm leading-relaxed font-medium">
-                  {doctor.bio}
+                  {doctor.bio || "No biography provided for this specialist."}
                 </p>
               </div>
 
@@ -131,14 +150,14 @@ export default function DoctorDetailsPage() {
                   <MapPin className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Chamber Clinic</p>
-                    <p className="text-slate-800 mt-0.5 leading-snug">{doctor.location}</p>
+                    <p className="text-slate-800 mt-0.5 leading-snug">{doctor.location || "Khulna, Bangladesh"}</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-2 text-xs font-semibold text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">
                   <Calendar className="h-4 w-4 text-emerald-700 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Next Availability</p>
-                    <p className="text-slate-800 mt-0.5 leading-snug">{doctor.available}</p>
+                    <p className="text-slate-800 mt-0.5 leading-snug">{doctor.available || "Available Today"}</p>
                   </div>
                 </div>
               </div>
@@ -150,7 +169,7 @@ export default function DoctorDetailsPage() {
                 <p className="text-xl font-black text-slate-900">৳১,০০০ <span className="text-xs font-medium text-slate-400">(Vat Incl.)</span></p>
               </div>
               <Link
-                href={`/appointments/${doctor.id}/book`}
+                href={`/appointments/${doctor._id || doctor.id}/book`}
                 className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 bg-emerald-800 hover:bg-emerald-900 text-white text-sm font-bold px-6 py-3 rounded-xl transition-all shadow-md active:scale-95"
               >
                 <CheckCircle2 className="h-4 w-4" />

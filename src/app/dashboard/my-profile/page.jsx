@@ -6,6 +6,10 @@ import { useSession } from "@/lib/auth-client"; // Better-Auth সেশন হ�
 import { toast } from "react-hot-toast";
 
 export default function MyProfilePage() {
+  useEffect(() => {
+    // 🎯 এই লাইনের কারণে ব্রাউজার ট্যাব সরাসরি চেঞ্জ হয়ে যাবে ভাই!
+    document.title = "My Profile | MedReserve"; 
+  }, []);
   const { data: sessionData, isPending } = useSession(); // সেশন এবং সেশন লোডিং স্টেট ধরা হলো
   const [loading, setLoading] = useState(false);
 
@@ -42,7 +46,7 @@ export default function MyProfilePage() {
     setLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:5000/users/${profile.email}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/users/${profile.email}`, {
         method: "PUT", 
         headers: {
           "Content-Type": "application/json",

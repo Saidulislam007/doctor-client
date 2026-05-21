@@ -2,20 +2,40 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Star, Clock, ShieldCheck, MapPin, ArrowUpRight, Loader2 } from "lucide-react";
+import { Star, Clock, ShieldCheck, MapPin, ArrowRight, Loader2, Heart, Activity, Search, X } from "lucide-react";
 
 export default function AppointmentsPage() {
   // লাইভ স্টেট ম্যানেজমেন্ট ফ্রেমওয়ার্ক
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // 🎯 পিওর জাভাস্ক্রিপ্ট হেল্পার ফাংশন: ব্রাউজার কুকি থেকে টোকেন রিড করার জন্য
+  const getCookie = (name) => {
+    if (typeof window === "undefined") return "";
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+    return "";
+  };
 
   // 🎯 ব্যাকএন্ড এপিআই থেকে ডাক্তারদের ডাটা ফেচ করার হুক
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:5000/doctors");
+        
+        // Better Auth টোকেন বা আপনার কাস্টম JWT টোকেন কুকি থেকে নেওয়া হচ্ছে ভাই
+        const token = getCookie("token") || getCookie("better-auth.session_token");
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/doctors`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "authorization": `Bearer ${token}` // 🎯 ফিক্সড: এখন আর cookieStore এরর আসবে না ভাই
+          },
+        });
         
         if (!response.ok) {
           throw new Error("Failed to sync data stream from server");
@@ -34,10 +54,23 @@ export default function AppointmentsPage() {
     fetchDoctors();
   }, []);
 
-  // 📊 প্রফেশনাল সর্টিং লজিক: এপিআই থেকে আসা ডাটাকে রেটিং অনুযায়ী ডেসেন্ডিং সিরিয়াল করা হলো
-  const sortedDoctors = [...doctors].sort((a, b) => Number(b.rating) - Number(a.rating));
+  // 🎯 ব্রাউজার ট্যাব টাইটেল চেঞ্জ হুক
+  useEffect(() => {
+    document.title = "Appointments | MedReserve"; 
+  }, []);
 
-  // ⏳ কন্ডিশন ১: ব্যাকএন্ড থেকে ডাটা আসার আগ পর্যন্ত প্রফেশনাল ফুল-স্ক্রিন লোডার
+  // 📊 প্রফেশনাল ফিল্টারিং এবং সর্টিং লজিক
+  const filteredAndSortedDoctors = [...doctors]
+    .filter((doctor) => {
+      const query = searchQuery.toLowerCase().trim();
+      return (
+        doctor.name?.toLowerCase().includes(query) ||
+        doctor.specialty?.toLowerCase().includes(query)
+      );
+    })
+    .sort((a, b) => Number(b.rating) - Number(a.rating));
+
+  // ⏳ কন্ডিশন ১: ব্যাকএন্ড থেকে ডাটা আসার আগ পর্যন্ত প্রফেশনাল লোডার
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50/50 p-4">
@@ -47,10 +80,10 @@ export default function AppointmentsPage() {
     );
   }
 
-  // ❌ কন্ডিশন ২: ব্যাকএন্ড সার্ভার বন্ধ থাকলে বা ডাটা না আসলে এরর মেসেজ স্ক্রিন
-  if (error || sortedDoctors.length === 0) {
+  // ❌ কন্ডিশন ২: ব্যাকএন্ড সার্ভার বন্ধ থাকলে বা এপিআই একদম ফাঁকা ডাটা দিলে এরর মেসেজ স্ক্রিন
+  if (error || doctors.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50/50 p-4 text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 text-center">
         <h2 className="text-2xl font-black text-slate-800 tracking-tight">Database Offline</h2>
         <p className="text-sm text-slate-500 font-medium mt-1 max-w-sm">
           {error || "No verified doctors found in the server at this moment."}
@@ -70,112 +103,156 @@ export default function AppointmentsPage() {
     <div className="min-h-screen bg-slate-50/50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Top Header Grid Area */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-slate-200 pb-6 mb-10 gap-4">
-          <div className="space-y-2 text-left">
-            <div className="inline-flex items-center space-x-2 bg-emerald-50 text-emerald-800 px-3 py-1 rounded-full text-xs font-bold border border-emerald-100">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              <span>Certified Top Specialists</span>
+        {/* ================= 🎯 FIXED TOP HEADER: ডার্ক লাক্সারি ব্যানার ================= */}
+        <div className="w-full bg-slate-950 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/30 rounded-[32px] p-6 sm:p-10 text-left relative overflow-hidden shadow-xl mb-12 border border-slate-800/60">
+          <div className="absolute right-0 top-0 bottom-0 w-80 bg-gradient-to-l from-emerald-500/5 to-transparent pointer-events-none z-0" />
+          
+          <div className="relative z-10 space-y-4 max-w-3xl">
+            <div className="inline-flex items-center space-x-2 bg-emerald-500/10 text-emerald-400 px-4 py-1.5 rounded-full text-xs font-black tracking-wider border border-emerald-500/20 uppercase">
+              <ShieldCheck className="h-3.5 w-3.5 stroke-[2.5]" />
+              <span>Verified Accounts Portal</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-              All Appointments & Doctors
+            
+            <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight flex items-center gap-3">
+              All Appointments! <span className="animate-[wiggle_1s_ease-in-out_infinite] origin-bottom-right inline-block">👋</span>
             </h1>
-            <p className="text-sm text-slate-500 font-medium max-w-xl">
-              Browse elite verified medical practitioners ranked dynamically by patient global metrics and satisfaction grades.
+            
+            <p className="text-slate-400 text-xs sm:text-sm font-medium leading-relaxed max-w-2xl">
+              Manage your upcoming medical consultations, historical healthcare logs, and update your patient credential record instantly through our secure gateway. Browse elite practitioners ranked dynamically by patient satisfaction grades.
             </p>
-          </div>
-          <div className="text-xs font-bold text-slate-400 bg-white border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm shrink-0">
-            Total Available Practitioners: <span className="text-emerald-800 text-sm">{sortedDoctors.length}</span>
+
+            <div className="flex flex-wrap gap-4 pt-4 border-t border-slate-800/60 mt-6">
+              <div className="flex items-center space-x-2 text-slate-300 font-bold text-xs bg-slate-900/80 px-3.5 py-2 rounded-xl border border-slate-800">
+                <Heart className="h-4 w-4 text-emerald-500 animate-pulse" />
+                <span>Live Care Sync</span>
+              </div>
+              <div className="flex items-center space-x-2 text-slate-300 font-bold text-xs bg-slate-900/80 px-3.5 py-2 rounded-xl border border-slate-800">
+                <Activity className="h-4 w-4 text-emerald-500" />
+                <span>Total Registered: {doctors.length} Specialists</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Responsive Grid System (3 Cards per row on Large Desktop) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedDoctors.map((doctor, index) => (
-            <div
-              key={doctor.id || doctor._id} // মঙ্গোডিবির সেফটি কী হিসেবে অবজেক্ট আইডি বা কাস্টম আইডি ট্র্যাক করা হচ্ছে
-              className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:border-emerald-600/20 active:scale-[0.995] transition-all duration-300 flex flex-col group"
-            >
-              
-              {/* Card Image Area with Absolute Badges */}
-              <div className="relative h-56 bg-slate-100 overflow-hidden shrink-0">
-                <img
-                  src={doctor.image}
-                  alt={doctor.name}
-                  className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 ease-out"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent" />
+        {/* ================= 🔍 LIVE SEARCH UTILITY FRAMEWORK ================= */}
+        <div className="w-full max-w-xl mx-auto mb-10 relative group">
+          <div className="absolute inset-0 bg-emerald-800/10 rounded-2xl blur-md opacity-0 group-focus-within:opacity-100 transition-all duration-300 pointer-events-none" />
+          <div className="relative flex items-center">
+            <Search className="absolute left-4 h-5 w-5 text-slate-400 group-focus-within:text-emerald-800 transition-colors pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search doctors by name or specialty (e.g. Gynecologist)..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-12 py-4 bg-white border border-slate-200 rounded-2xl text-sm text-slate-800 placeholder-slate-400 font-medium shadow-sm outline-none focus:border-emerald-800 focus:ring-1 focus:ring-emerald-800/20 transition-all"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-4 p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-all"
+                aria-label="Clear search input"
+              >
+                <X className="h-4 w-4 stroke-[2.5]" />
+              </button>
+            )}
+          </div>
+          
+          {searchQuery && (
+            <p className="text-left text-xs font-bold text-slate-400 mt-2.5 pl-1 uppercase tracking-wide">
+              Found <span className="text-emerald-800 font-black">{filteredAndSortedDoctors.length}</span> results matching your query
+            </p>
+          )}
+        </div>
+
+        {/* ================= 📱💻 ALL DEVICES UNIVERSAL GRID SYSTEM ================= */}
+        {/* 🎯 ফিক্সড কন্ডিশন: সার্চ রেজাল্ট ট্র্যাকিং এখন filteredAndSortedDoctors-এর ওপর বেস করে হবে ভাই */}
+        {filteredAndSortedDoctors.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-md sm:max-w-none mx-auto">
+            {filteredAndSortedDoctors.map((doctor, index) => (
+              <div
+                key={doctor.id || doctor._id}
+                className="bg-white border border-slate-100 p-4 rounded-[32px] shadow-md hover:shadow-2xl active:scale-[0.995] md:hover:-top-2 top-0 flex flex-col group relative transition-all duration-500"
+              >
                 
-                {/* Ranking Badge */}
-                <div className="absolute top-4 left-4 bg-slate-900/80 backdrop-blur-md text-white text-[11px] font-black px-2.5 py-1 rounded-lg tracking-wider">
-                  RANK #{index + 1}
-                </div>
-
-                {/* Live Availability Badge */}
-                <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-lg border border-slate-100 shadow-sm flex items-center space-x-1.5">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                  <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wide truncate max-w-[150px]">
-                    {doctor.available}
-                  </span>
-                </div>
-              </div>
-
-              {/* Core Content Framework */}
-              <div className="p-6 flex flex-col justify-between flex-grow space-y-5">
-                
-                <div className="space-y-2 text-left">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded-md">
-                      {doctor.specialty}
-                    </span>
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                      <span className="text-sm font-black text-slate-800">{Number(doctor.rating).toFixed(1)}</span>
-                      <span className="text-xs text-slate-400 font-medium">({doctor.reviews})</span>
-                    </div>
-                  </div>
-
-                  <h3 className="text-xl font-bold text-slate-900 group-hover:text-emerald-800 transition-colors tracking-tight">
-                    {doctor.name}
-                  </h3>
-
-                  <div className="space-y-1.5 pt-1 text-slate-500 text-xs font-medium">
-                    <div className="flex items-center space-x-1.5">
-                      <Clock className="h-3.5 w-3.5 text-slate-400" />
-                      <span>Experience: <strong className="text-slate-700">{doctor.experience}</strong></span>
-                    </div>
-                    <div className="flex items-start space-x-1.5 line-clamp-1">
-                      <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0 mt-0.5" />
-                      <span className="truncate">{doctor.location}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Primary Actions Trigger Frame */}
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-3 mt-auto">
-                  <div className="text-left">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Consultation</p>
-                    <p className="text-sm font-black text-slate-800">Free / Covered</p>
-                  </div>
+                {/* TOP COMPONENT: ইমেজ বক্স */}
+                <div className="w-full h-72 sm:h-64 lg:h-72 bg-[#b2b9be]/30 rounded-[24px] overflow-hidden shrink-0 relative flex items-center justify-center p-2 shadow-inner">
+                  <img
+                    src={doctor.image}
+                    alt={doctor.name}
+                    className="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                  />
                   
-                  {/* ডাইনামিক আইডি দিয়ে ভিউ ডিটেইলস রাউট রিডাইরেকশন */}
+                  <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-slate-800 font-black text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm">
+                    RANK #{index + 1}
+                  </span>
+
+                  <div className="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-md px-2.5 py-1 rounded-lg shadow-sm flex items-center space-x-1.5 z-20">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-[9px] font-black text-white uppercase tracking-wide truncate max-w-[110px]">
+                      {doctor.available?.split(" ")[0] || "Today"}
+                    </span>
+                  </div>
+
                   <Link
-                    href={`/appointments/${doctor.id}`}
-                    className="inline-flex items-center space-x-1 bg-slate-900 hover:bg-emerald-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all duration-200 active:scale-95 shadow-sm shadow-slate-200 group/btn"
+                    href={`/appointments/${doctor.id || doctor._id}`}
+                    className="absolute bottom-4 right-4 bg-white hover:bg-emerald-800 hover:text-white text-slate-900 font-bold text-xs px-4 py-2.5 rounded-full shadow-lg flex items-center space-x-1.5 transition-all duration-300 z-20 group/btn"
                   >
                     <span>View Details</span>
-                    <ArrowUpRight className="h-3.5 w-3.5 text-slate-400 group-hover/btn:text-white transition-colors" />
+                    <ArrowRight className="h-3.5 w-3.5 text-slate-500 group-hover/btn:text-white group-hover/btn:translate-x-1 transition-all" />
                   </Link>
                 </div>
 
-              </div>
+                {/* BOTTOM COMPONENT: ইনফরমেটিভ এরিয়া */}
+                <div className="p-4 flex flex-col flex-grow text-left mt-2 justify-between">
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900 tracking-tight leading-tight group-hover:text-emerald-800 transition-colors duration-300">
+                      {doctor.name}
+                    </h3>
+                    <p className="text-xs font-bold text-slate-400 mt-1 flex items-center tracking-wide uppercase">
+                      <MapPin className="h-3 w-3 mr-1 text-slate-300 shrink-0" />
+                      {doctor.specialty} • {doctor.location?.split(",")[0] || "Dhaka"}
+                    </p>
+                  </div>
 
-            </div>
-          ))}
-        </div>
+                  <div className="grid grid-cols-3 gap-2 border-t border-slate-100/80 pt-4 mt-5 text-center">
+                    <div className="flex flex-col items-center justify-center border-r border-slate-100 last:border-0">
+                      <span className="text-slate-800 font-black text-sm">{doctor.experience?.split(" ")[0] || "0"}</span>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mt-0.5">Years Exp</span>
+                    </div>
+                    <div className="flex flex-col items-center justify-center border-r border-slate-100 last:border-0 px-1">
+                      <span className="text-emerald-800 font-black text-xs sm:text-sm truncate max-w-full">Covered</span>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mt-0.5">Consult</span>
+                    </div>
+                    <div className="flex flex-col items-center justify-center">
+                      <span className="text-amber-500 font-black text-sm flex items-center justify-center gap-0.5">
+                        {Number(doctor.rating).toFixed(1)}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mt-0.5">Rating ({doctor.reviews || 0})</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* 🔍 সার্চ রেজাল্ট না মিললে এই আল্ট্রা-স্লীক ব্লকিং এরিয়া শো হবে */
+          <div className="w-full py-16 text-center bg-white border border-slate-100 rounded-[32px] shadow-sm max-w-xl mx-auto">
+            <p className="text-base font-black text-slate-800 tracking-tight">No Practitioners Found</p>
+            <p className="text-xs text-slate-400 font-semibold mt-1 max-w-xs mx-auto">
+              We couldn't find any verified specialists matching "{searchQuery}". Try checking for typos or searching a different field.
+            </p>
+            <button
+              onClick={() => setSearchQuery("")}
+              className="mt-4 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-xl active:scale-95 transition-all"
+            >
+              Clear Search Filter
+            </button>
+          </div>
+        )}
 
       </div>
     </div>

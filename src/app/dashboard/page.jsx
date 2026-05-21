@@ -1,9 +1,13 @@
 "use client";
-
+import { useEffect } from "react";
 import Link from "next/link";
 import { Calendar, User, ShieldCheck, ArrowRight, Activity, HeartPulse } from "lucide-react";
 
 export default function DashboardHome() {
+  useEffect(() => {
+    // 🎯 এই লাইনের কারণে ব্রাউজার ট্যাব সরাসরি চেঞ্জ হয়ে যাবে ভাই!
+    document.title = "Dashboard | MedReserve"; 
+  }, []);
   return (
     <div className="space-y-8 max-w-4xl text-left animate-[fadeIn_0.4s_ease-out]">
       

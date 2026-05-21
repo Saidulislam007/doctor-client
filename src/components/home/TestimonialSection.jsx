@@ -103,25 +103,29 @@ export default function TestimonialSection() {
           {testimonials.map((item, index) => (
             <div
               key={item.id}
-              // ফিক্সড: নিচ থেকে ওপরে ওঠার দূরত্ব ৯৯পিক্সেল এবং ট্রানজিশন ডাইনামিক করা হয়েছে
               className={`${item.gridSpan} bg-[#f4f7f1]/60 border border-slate-100 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-sm hover:shadow-xl hover:bg-[#f4f7f1] active:scale-[0.99] transition-all duration-700 ${
                 isVisible ? "animate-slideInUp opacity-100" : "opacity-0 translate-y-[90px]"
               }`}
               style={{
-                // ফিক্সড: একটার পর আরেকটা কার্ড আসার মাঝখানের গ্যাপ বাড়িয়ে ২৫০ms করা হয়েছে
                 animationDelay: isVisible ? `${index * 250}ms` : "0ms",
               }}
             >
               {/* Content Conditional Layout */}
               {item.type === "with-image" ? (
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-center">
-                  {/* Left Side Square-Image with Custom Organic Border Radius */}
-                  <div className="sm:col-span-4 h-48 w-full sm:w-44 overflow-hidden rounded-2xl shadow-sm">
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                  
+                  {/* ================= 📸 IMAGE CONTAINER (SLIGHTLY EXPANDED FOR MOBILE) ================= */}
+                  {/* 🎯 ফিক্সড: মোবাইলের জন্য সামান্য বাড়িয়ে h-36 w-36 করা হয়েছে, বড় স্ক্রিনে sm:h-48 sm:w-44 এ কনভার্ট হবে */}
+                  <div className="sm:col-span-4 h-36 w-36 sm:h-48 sm:w-44 overflow-hidden rounded-2xl shadow-sm shrink-0 bg-slate-100/50 mx-auto sm:mx-0">
+                    <img 
+                      src={item.image} 
+                      alt={item.name} 
+                      className="w-full h-full object-cover object-top" 
+                    />
                   </div>
                   
                   {/* Right Side Quote Context */}
-                  <div className="sm:col-span-8 space-y-4">
+                  <div className="sm:col-span-8 space-y-4 text-left w-full">
                     <span className="text-4xl font-serif text-slate-800 leading-none block select-none">“</span>
                     <p className="text-slate-700 text-sm leading-relaxed font-medium line-clamp-4">
                       {item.quote}
@@ -145,7 +149,7 @@ export default function TestimonialSection() {
                 </div>
               ) : (
                 // Text Only Standard Card Template
-                <div className="space-y-4 flex flex-col justify-between h-full">
+                <div className="space-y-4 flex flex-col justify-between h-full text-left">
                   <div className="space-y-2">
                     <span className="text-4xl font-serif text-slate-800 leading-none block select-none">“</span>
                     <p className="text-slate-700 text-sm leading-relaxed font-medium line-clamp-5">

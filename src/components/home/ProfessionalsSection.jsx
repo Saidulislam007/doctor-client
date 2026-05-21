@@ -36,7 +36,7 @@ export default function ProfessionalsSection() {
   ];
 
   return (
-    <section className="w-full py-20 bg-[#edf5ed]/50 overflow-hidden">
+    <section className="w-full py-8 bg-[#edf5ed]/50 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           

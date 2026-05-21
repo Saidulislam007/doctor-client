@@ -46,79 +46,14 @@ export default function HeroBanner() {
   }, [slides.length]);
 
   return (
-    // মেইন প্যারেন্ট কন্টেইনার সম্পূর্ণ w-full এবং কোনো প্যাডিং/মার্জিন নেই
     <div className="w-full bg-[#f4f7f1] border-b border-slate-200">
       
-      {/* গ্রিড লেআউট একদম বর্ডার ছাড়া স্ক্রিনের শেষ প্রান্ত পর্যন্ত কাজ করবে */}
+      {/* grid-cols-1 দিয়ে মোবাইলে ইমেজ ও টেক্সট ওপরে-নিচে ব্লক আকারে থাকবে */}
       <div className="w-full grid grid-cols-1 md:grid-cols-12 bg-[#f4f7f1] min-h-[550px] relative">
         
-        {/* LEFT COMPONENT: টেক্সট কন্টেন্ট এরিয়া */}
-        <div className="md:col-span-7 p-8 sm:p-12 lg:p-16 xl:p-24 flex flex-col justify-between bg-[#f4f7f1] relative z-10">
-          
-          {/* Top Brand Marker */}
-          <div className="flex items-center space-x-2 text-emerald-800">
-            <div className="p-2 bg-emerald-900/10 rounded-xl">
-              <Stethoscope className="h-5 w-5 stroke-[2.5]" />
-            </div>
-            <span className="font-bold text-lg tracking-tight uppercase">MedReserve</span>
-          </div>
-
-          {/* Dynamic Content Transition Box */}
-          <div className="my-8 space-y-6 transition-all duration-700 ease-in-out transform">
-            <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 uppercase tracking-widest bg-emerald-100/60 px-3 py-1 rounded-full">
-              <Sparkles className="h-3 w-3" />
-              {slides[currentSlide].subtitle}
-            </span>
-            
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-tight tracking-tight">
-              {slides[currentSlide].title}
-            </h1>
-
-            {/* Feature Description */}
-            <div className="space-y-4 pt-2">
-              <div className="flex items-start space-x-3">
-                <div className="p-1.5 bg-emerald-800 rounded-lg text-white mt-1 shrink-0">
-                  <ShieldCheck className="h-4 w-4" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-800 text-sm uppercase tracking-wide">
-                    {slides[currentSlide].featureTitle}
-                  </h4>
-                  <p className="text-slate-600 text-sm leading-relaxed mt-0.5">
-                    {slides[currentSlide].featureDesc}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Static Institutional Facts Area */}
-            <div className="border-t border-slate-200/80 pt-4 space-y-2 text-xs font-semibold text-emerald-800">
-              <p className="flex items-center gap-2">
-                <span className="text-lg text-emerald-600 font-bold">+</span> Largest Certified Network of Practitioner Clinics
-              </p>
-              <p className="flex items-center gap-2">
-                <span className="text-lg text-emerald-600 font-bold">+</span> Complete security matrix encrypted client history
-              </p>
-            </div>
-          </div>
-
-          {/* Action buttons footer */}
-          <div className="flex items-center space-x-4 pt-4">
-            <Link
-              href="/appointments"
-              className="inline-flex items-center justify-center px-6 py-3.5 border border-transparent text-sm font-bold rounded-xl text-white bg-emerald-800 hover:bg-emerald-900 active:scale-[0.99] transition-all duration-200 shadow-md"
-            >
-              Find Specialists
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-            <span className="text-xs font-bold text-slate-400 hidden sm:inline">
-              URL: MEDRESERVEHEALTH.COM
-            </span>
-          </div>
-        </div>
-
-        {/* RIGHT COMPONENT: ইমেজ কারোসেল বা স্লাইডার */}
-        <div className="md:col-span-5 min-h-[350px] md:min-h-full relative bg-slate-900 overflow-hidden">
+        {/* ================= 📸 RIGHT COMPONENT: মোবাইলে এটি ওপরে (order-1) দেখাবে ================= */}
+        {/* h-[380px] দিয়ে মোবাইল ভিউতে ডক্টরের পুরো ছবিটা চওড়া ও স্পষ্টভাবে দৃশ্যমান করা হয়েছে */}
+        <div className="w-full h-[380px] sm:h-[450px] md:h-full md:col-span-5 relative bg-slate-900 overflow-hidden order-1 md:order-2">
           {slides.map((slide, index) => (
             <div
               key={slide.id}
@@ -126,13 +61,14 @@ export default function HeroBanner() {
                 index === currentSlide ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-105 pointer-events-none"
               }`}
             >
-              {/* Overlay mask */}
-              <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-[#f4f7f1] via-transparent to-black/10 z-10" />
+              {/* Overlay mask - মোবাইলের জন্য বটম শ্যাডো গ্রাডিয়েন্ট যাতে টেক্সট সেকশনের সাথে স্মুথলি মিশে যায় */}
+              <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-[#f4f7f1] via-transparent to-black/5 z-10" />
               
               <img
                 src={slide.image}
-                alt=""
-                className="w-full h-full object-cover"
+                alt={slide.title || "MedReserve Slider"}
+                className="w-full h-full object-cover object-top block"
+                loading="lazy"
               />
 
               {/* Float Badge */}
@@ -154,6 +90,71 @@ export default function HeroBanner() {
                 aria-label={`Go to slide ${i + 1}`}
               />
             ))}
+          </div>
+        </div>
+
+        {/* ================= 📝 LEFT COMPONENT: মোবাইলে এটি নিচে (order-2) চলে আসবে ================= */}
+        <div className="md:col-span-7 p-6 sm:p-12 lg:p-16 xl:p-24 flex flex-col justify-between bg-[#f4f7f1] relative z-10 order-2 md:order-1">
+          
+          {/* Top Brand Marker */}
+          <div className="flex items-center space-x-2 text-emerald-800">
+            <div className="p-2 bg-emerald-900/10 rounded-xl">
+              <Stethoscope className="h-5 w-5 stroke-[2.5]" />
+            </div>
+            <span className="font-bold text-lg tracking-tight uppercase">MedReserve</span>
+          </div>
+
+          {/* Dynamic Content Transition Box */}
+          <div className="my-6 sm:my-8 space-y-6 transition-all duration-700 ease-in-out transform">
+            <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 uppercase tracking-widest bg-emerald-100/60 px-3 py-1 rounded-full">
+              <Sparkles className="h-3 w-3" />
+              {slides[currentSlide].subtitle}
+            </span>
+            
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 leading-tight tracking-tight">
+              {slides[currentSlide].title}
+            </h1>
+
+            {/* Feature Description */}
+            <div className="space-y-4 pt-2">
+              <div className="flex items-start space-x-3">
+                <div className="p-1.5 bg-emerald-800 rounded-lg text-white mt-1 shrink-0">
+                  <ShieldCheck className="h-4 w-4" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-800 text-sm uppercase tracking-wide">
+                    {slides[currentSlide].featureTitle}
+                  </h4>
+                  <p className="text-slate-600 text-sm leading-relaxed mt-0.5">
+                    {slides[currentSlide].featureDesc}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Static Institutional Facts Area */}
+            <div className="border-t border-slate-200/80 pt-4 space-y-2 text-xs font-semibold text-emerald-800 hidden sm:block">
+              <p className="flex items-center gap-2">
+                <span className="text-lg text-emerald-600 font-bold">+</span> Largest Certified Network of Practitioner Clinics
+              </p>
+              <p className="flex items-center gap-2">
+                <span className="text-lg text-emerald-600 font-bold">+</span> Complete security matrix encrypted client history
+              </p>
+            </div>
+          </div>
+
+          {/* Action buttons footer */}
+          <div className="flex items-center space-x-4 pt-2 md:pt-">
+            <Link
+              href="/appointments"
+              className="inline-flex mb-12 md:mb-0 items-center justify-center px-6 py-3.5 border border-transparent text-sm font-bold rounded-xl text-white bg-emerald-800 hover:bg-emerald-900 active:scale-[0.99] transition-all duration-200 shadow-md w-full sm:w-auto"
+            >
+              Find Specialists
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+            <span className="text-xs font-bold text-slate-400 hidden sm:inline">
+              URL: MEDRESERVEHEALTH.COM
+            </span>
           </div>
         </div>
 

@@ -1,33 +1,22 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
-import { ArrowLeft, Calendar, Clock, User, Phone, FileText, CheckCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Calendar, Clock, User, Phone, FileText, CheckCircle, Loader2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 export default function BookingCheckoutPage() {
   const params = useParams();
   const router = useRouter();
+  
+  // 🎯 ১. ইউআরএল থেকে মঙ্গোডিবির অরিজিনাল আইডি রিসিভ করা হলো ভাই
   const doctorId = params.id;
 
-  // ১০ জন ডাক্তারের বেসিক ডেটাবেজ (শুধুমাত্র নাম ও স্পেশালটি স্ক্রিনে শো করার জন্য)
-  const doctorsDatabase = [
-    { id: "doc-1", name: "Dr. Evelyn Vance", specialty: "Cardiologist", fee: 1000 },
-    { id: "doc-2", name: "Dr. Robert Chen", specialty: "Neurologist", fee: 1000 },
-    { id: "doc-3", name: "Dr. Maria Noor", specialty: "Dermatologist", fee: 1000 },
-    { id: "doc-4", name: "Dr. Aris Thorne", specialty: "Pediatrician", fee: 1000 },
-    { id: "doc-5", name: "Dr. Sarah Jenkins", specialty: "Gynecologist", fee: 1000 },
-    { id: "doc-6", name: "Dr. James Wilson", specialty: "Orthopedic Surgeon", fee: 1000 },
-    { id: "doc-7", name: "Dr. Aliyah Rahman", specialty: "Psychiatrist", fee: 1000 },
-    { id: "doc-8", name: "Dr. David Kim", specialty: "Ophthalmologist", fee: 1000 },
-    { id: "doc-9", name: "Dr. Johan Marley", specialty: "General Physician", fee: 1000 },
-    { id: "doc-10", name: "Dr. Lisa Kudrow", specialty: "Endocrinologist", fee: 1000 },
-  ];
-
-  const doctor = doctorsDatabase.find((doc) => doc.id === doctorId);
-
-  // ফর্মের স্টেটসমূহ
+  // লাইভ ডাটা এবং লোডিং ম্যানেজমেন্ট স্টেটসমূহ
+  const [doctor, setDoctor] = useState(null);
+  const [pageLoading, setPageLoading] = useState(true);
   const [loading, setLoading] = useState(false);
+  
   const [formData, setFormData] = useState({
     patientName: "",
     patientPhone: "",
@@ -35,6 +24,41 @@ export default function BookingCheckoutPage() {
     timeSlot: "",
     symptoms: "",
   });
+
+  // 🎯 ২. ব্যাকএন্ড থেকে ডাক্তারের রিয়েল-টাইম ডাটা ফেচ করে আনার মাস্টার হুক ভাই
+  useEffect(() => {
+    const fetchDoctorForCheckout = async () => {
+      if (!doctorId || doctorId === "undefined") return;
+
+      try {
+        setPageLoading(true);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/doctors/${doctorId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include" // Better Auth সেশন কুকি পাস করার জন্য ভাই
+        });
+
+        if (!response.ok) {
+          throw new Error("Unable to retrieve doctor parameters");
+        }
+
+        const data = await response.json();
+        setDoctor(data);
+        
+        // ডাইনামিক ব্রাউজার ট্যাব টাইটেল
+        document.title = `Checkout - Booking with ${data.name} | MedReserve`;
+      } catch (err) {
+        console.error("❌ Checkout profile sync error:", err.message);
+        toast.error("Failed to load doctor summary for checkout");
+      } finally {
+        setPageLoading(false);
+      }
+    };
+
+    fetchDoctorForCheckout();
+  }, [doctorId]);
 
   // ডামি অ্যাভেইলেবল টাইম স্লট
   const availableSlots = [
@@ -48,70 +72,77 @@ export default function BookingCheckoutPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
- const handleSubmitBooking = async (e) => {
-  e.preventDefault();
-  
-  // ১. ভ্যালিডেশন চেক (ফর্ম খালি থাকলে আটকে দেবে)
-  if (!formData.patientName || !formData.patientPhone || !formData.appointmentDate || !formData.timeSlot) {
-    return toast.error("Please fill in all required fields.");
-  }
-
-  console.log("🔥 ব্যাকএন্ডে পাঠানোর জন্য প্রস্তুত ডেটা:", formData);
-
-  setLoading(true);
-  
-  try {
-    // 🎯 ২. এখানে আপনার ব্যাকএন্ড পোস্ট (POST) এপিআই কল করা হচ্ছে
-    // (আপনার এক্সপ্রেস সার্ভার যদি অন্য পোর্টে চলে, যেমন ৫০৭৭ বা ৪০০০, তবে সেই পোর্ট নম্বরটি দেবেন)
-    const response = await fetch("http://localhost:5000/appointments", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ...formData,
-        doctorName: doctor?.name, // ডাক্তারের নামও সাথে পাঠিয়ে দেওয়া হচ্ছে
-        specialty: doctor?.specialty // ডাক্তারের স্পেশালটিও ট্র্যাক রাখার জন্য পাঠানো যেতে পারে
-      }),
-    });
-
-    const data = await response.json();
-
+  const handleSubmitBooking = async (e) => {
+    e.preventDefault();
     
-
-    // ৩. ব্যাকএন্ডে ডেটা সফলভাবে ইনসার্ট হলে (MongoDB থেকে acknowledged: true আসলে)
-    if (data.acknowledged || data.insertedId) {
-      toast.success(`Appointment with ${doctor?.name} successfully requested!`);
-      
-      // ফর্ম ক্লিয়ার করার জন্য (ঐচ্ছিক)
-      // setFormData({ patientName: "", patientPhone: "", appointmentDate: "", timeSlot: "" });
-      
-      // ড্যাশবোর্ডে রিডাইরেক্ট
-      router.push("/dashboard");
-    } else {
-      // যদি ডাটাবেজ রেসপন্স পজিটিভ না আসে
-      toast.error("Something went wrong while saving the appointment.");
+    if (!formData.patientName || !formData.patientPhone || !formData.appointmentDate || !formData.timeSlot) {
+      return toast.error("Please fill in all required fields.");
     }
 
-  } catch (error) {
-    // ৪. নেটওয়ার্ক এরর বা ব্যাকএন্ড সার্ভার বন্ধ থাকলে এই ক্যাচ ব্লক কাজ করবে
-    console.error("❌ Booking Error:", error);
-    toast.error("Server-side connection failed. Please try again.");
-  } finally {
-    // লোডিং স্পিনার বন্ধ করা (সফল হোক বা এরর আসুক)
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    
+    try {
+      // 🎯 ৩. ব্যাকএন্ডে সাকসেসফুল অ্যাপয়েন্টমেন্ট পোস্ট কল ভাই
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/appointments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...formData,
+          doctorId: doctorId,
+          doctorName: doctor?.name, 
+          specialty: doctor?.specialty,
+          fee: doctor?.fee || 1000
+        }),
+      });
 
+      const data = await response.json();
+
+      if (data.acknowledged || data.insertedId) {
+        toast.success(`Appointment with ${doctor?.name} successfully requested!`);
+        router.push("/dashboard");
+      } else {
+        toast.error("Something went wrong while saving the appointment.");
+      }
+
+    } catch (error) {
+      console.error("❌ Booking Error:", error);
+      toast.error("Server-side connection failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ⏳ পেজ প্রথম লোড হওয়ার সময় প্রিমিয়াম স্পিনার স্ক্রিন ভাই
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50/60 p-4">
+        <Loader2 className="h-10 w-10 text-emerald-800 animate-spin shrink-0" />
+        <p className="text-sm font-bold text-slate-500 mt-3 tracking-wide">Securing Checkout Ledger Environment...</p>
+      </div>
+    );
+  }
+
+  // ❌ আইডি ডাটাবেজে না মিললে সেফটি গেটওয়ে
   if (!doctor) {
-    return <div className="p-8 text-center font-bold">Doctor Not Found</div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
+        <h2 className="text-2xl font-black text-slate-800 tracking-tight">Doctor Profile Untraceable</h2>
+        <p className="text-sm text-slate-500 font-medium mt-1">The practitioner node has expired or does not exist.</p>
+        <button onClick={() => router.back()} className="mt-5 inline-flex items-center space-x-2 text-emerald-800 font-bold bg-white border border-slate-200 px-5 py-2.5 rounded-xl shadow-sm transition-all">
+          <ArrowLeft className="h-4 w-4" /> <span>Return & Try Again</span>
+        </button>
+      </div>
+    );
   }
 
+  // ✅ ডাটা সফলভাবে সিঙ্ক হলে মেইন বুকিং ফর্ম রেন্ডার
   return (
     <div className="min-h-screen bg-slate-50/60 py-12">
       <div className="max-w-2xl mx-auto px-4">
         
-        {/* Back Button */}
+        {/* Cancel Button */}
         <button
           onClick={() => router.back()}
           className="inline-flex items-center space-x-2 text-sm font-bold text-slate-500 hover:text-emerald-800 bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm mb-6 transition-all active:scale-95"
@@ -129,7 +160,7 @@ export default function BookingCheckoutPage() {
           </div>
           <div className="text-right hidden sm:block">
             <p className="text-[10px] text-emerald-400 font-bold uppercase">Total Payable</p>
-            <p className="text-xl font-black">৳{doctor.fee}</p>
+            <p className="text-xl font-black">৳{doctor.fee || 1000}</p>
           </div>
         </div>
 

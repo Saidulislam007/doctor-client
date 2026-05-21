@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Calendar, ShieldCheck, Clock, Users } from "lucide-react";
 import HeroBanner from "@/components/home/HeroBanner";
-import TickerNotice from "@/components/home/TickerNotice";
 import AboutSection from "@/components/home/AboutSection";
 import FaqSection from "@/components/home/FaqSection";
 import BookingBanner from "@/components/home/BookingBanner";
@@ -33,13 +32,13 @@ export default function Home() {
     <div className="space-y-10">
       {/* Hero Section */}
       <HeroBanner></HeroBanner>
-      
+      <TopDoctorsSection></TopDoctorsSection>
 
       <StatsSection></StatsSection>
 
     <AboutSection>  </AboutSection>
       {/* Features/Value Proposition Section */}
-      <TopDoctorsSection></TopDoctorsSection>
+      
       <ProfessionalsSection></ProfessionalsSection>
       <TestimonialSection></TestimonialSection>
       <BookingBanner></BookingBanner>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
@@ -40,7 +40,7 @@ export default function LoginPage() {
           // ১. প্রথমে ব্যাকএন্ডের কাস্টম কালেকশনে ডেটা সেভ নিশ্চিত করা হচ্ছে
           if (loggedInUser) {
             try {
-              await fetch("http://localhost:5000/users", {
+              await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/users`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -70,7 +70,10 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
-
+  useEffect(() => {
+    // 🎯 এই লাইনের কারণে ব্রাউজার ট্যাব সরাসরি চেঞ্জ হয়ে যাবে ভাই!
+    document.title = "Login | MedReserve"; 
+  }, []);
   // 🌐 ২. গুগল সোশ্যাল লগইন হ্যান্ডেলার
   const handleGoogleLogin = async () => {
     setSocialLoading(true);
@@ -248,7 +251,7 @@ export default function LoginPage() {
             <p className="text-center text-xs text-slate-500 font-medium">
               Don't have an account?{" "}
               <Link href="/register" className="font-bold text-emerald-800 hover:text-emerald-700 transition-colors">
-                Sign up
+                Register
               </Link>
             </p>
 
