@@ -1,17 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, Mail, Phone, MapPin, Save, Image, Camera, Loader2, ShieldCheck, HeartPulse } from "lucide-react";
+import { User, Mail, Phone, MapPin, Save, Image, Camera, Loader2, ShieldCheck } from "lucide-react";
 import { useSession } from "@/lib/auth-client"; // Better-Auth সেশন হুক
 import { toast } from "react-hot-toast";
 
 export default function MyProfilePage() {
   useEffect(() => {
-    // 🎯 এই লাইনের কারণে ব্রাউজার ট্যাব সরাসরি চেঞ্জ হয়ে যাবে ভাই!
+    // 🎯 এই লাইনের কারণে ব্রাউজার ট্যাব সরাসরি চেঞ্জ হয়ে যাবে ভাই!
     document.title = "My Profile | MedReserve"; 
   }, []);
+
   const { data: sessionData, isPending } = useSession(); // সেশন এবং সেশন লোডিং স্টেট ধরা হলো
   const [loading, setLoading] = useState(false);
+  const [fetchingProfile, setFetchingProfile] = useState(false);
 
   // প্রোফাইল স্টেট ফ্রেমওয়ার্ক
   const [profile, setProfile] = useState({
@@ -23,16 +25,50 @@ export default function MyProfilePage() {
     image: "",
   });
 
-  // 🎯 ১. সেশন ডাটা লোড হওয়া মাত্রই আসল ইউজারের ডাটা স্টেটে সিঙ্ক করার হুক
+  // 🎯 ১. ডাটাবেজে আগে থেকে সেভ করা প্রোফাইল ডাটা ব্যাকএন্ড থেকে টেনে আনার হুক ভাই
   useEffect(() => {
-    if (sessionData?.user) {
-      setProfile((prevProfile) => ({
-        ...prevProfile,
+    const loadDatabaseProfile = async () => {
+      if (!sessionData?.user?.email) return;
+
+      try {
+        setFetchingProfile(true);
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://doctor-server-navy-one.vercel.app".trim();
+        
+        // সব ইউজারের লিস্ট থেকে কারেন্ট ইমেইলের ডাটা খোঁজা হচ্ছে ভাই
+        const response = await fetch(`${apiBaseUrl}/users`);
+        if (response.ok) {
+          const allUsers = await response.json();
+          const matchedUser = allUsers.find(u => u.email === sessionData.user.email);
+          
+          if (matchedUser) {
+            // ডাটাবেজে ইউজার প্রোফাইল পাওয়া গেলে তা স্টেটে সিঙ্ক করা হলো ভাই
+            setProfile({
+              name: matchedUser.name || sessionData.user.name || "",
+              email: matchedUser.email || sessionData.user.email || "",
+              phone: matchedUser.phone || "",
+              address: matchedUser.address || "",
+              bloodGroup: matchedUser.bloodGroup || "O+",
+              image: matchedUser.image || sessionData.user.image || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150",
+            });
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("❌ Error loading saved profile from DB:", err.message);
+      } finally {
+        setFetchingProfile(false);
+      }
+
+      // ডাটাবেজে ডাটা না থাকলে ডিফল্ট সেশন ডাটা সেট হবে ভাই
+      setProfile((prev) => ({
+        ...prev,
         name: sessionData.user.name || "Verified Patient",
         email: sessionData.user.email || "",
-        image: sessionData.user.image || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150", 
+        image: sessionData.user.image || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150",
       }));
-    }
+    };
+
+    loadDatabaseProfile();
   }, [sessionData]);
 
   // 🎯 ২. ফ্রন্টএন্ড থেকে ব্যাকএন্ড এপিআই-তে ইউজার ডাটা পাঠিয়ে UPDATE/PUT করার মেইন হ্যান্ডেলার
@@ -46,7 +82,10 @@ export default function MyProfilePage() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/users/${profile.email}`, {
+      // 🎯 ফিক্সড: সেফ প্রোডাকশন ব্যাকএন্ড ইউআরএল মেকানিজম ভাই
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://doctor-server-navy-one.vercel.app".trim();
+      
+      const response = await fetch(`${apiBaseUrl}/users/${profile.email}`, {
         method: "PUT", 
         headers: {
           "Content-Type": "application/json",
@@ -61,23 +100,28 @@ export default function MyProfilePage() {
         }),
       });
 
+      if (!response.ok) {
+        throw new Error(`Server responded with status ${response.status}`);
+      }
+
       const data = await response.json();
 
-      if (data.acknowledged || data.modifiedCount > 0) {
+      // 🎯 মঙ্গোডিবির আপসাইড রেসপন্স সিঙ্কিং (acknowledged অথবা modifiedCount যেকোনো একটা ট্রু হলেই সাকসেস ভাই)
+      if (data.acknowledged || data.modifiedCount > 0 || data.upsertedCount > 0) {
         toast.success("Profile metrics synced and updated in database successfully! 🎉");
       } else {
-        toast.error("Failed to sync profile metrics with database.");
+        toast.error("No metrics were modified. Profile is already up to date.");
       }
     } catch (error) {
       console.error("❌ Profile Update Submit Error:", error.message);
-      toast.error("Server connection failed. Please check backend port.");
+      toast.error("Server connection failed. Profile could not be updated.");
     } finally {
       setLoading(false);
     }
   };
 
-  // ⏳ সেশন ডাটা আসার পূর্ব মুহূর্ত পর্যন্ত প্রফেশনাল গ্লাস লোডার স্ক্রিন
-  if (isPending) {
+  // ⏳ সেশন বা প্রোফাইল ডাটা লোড হওয়ার গ্লসি স্পিনার স্ক্রিন ভাই
+  if (isPending || fetchingProfile) {
     return (
       <div className="w-full min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
         <Loader2 className="h-8 w-8 text-emerald-800 animate-spin shrink-0" />
@@ -89,7 +133,7 @@ export default function MyProfilePage() {
   return (
     <div className="max-w-2xl space-y-8 text-left animate-[fadeIn_0.4s_ease-out] pb-10">
       
-      {/* ================= HERO HEADING CARD (PREMIUM SAAS LOOK) ================= */}
+      {/* ================= HERO HEADING CARD ================= */}
       <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-950 to-emerald-950 p-6 sm:p-8 rounded-[32px] shadow-xl border border-slate-800 text-white group">
         <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-[60px] pointer-events-none" />
         <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-teal-500/5 rounded-full blur-[40px] pointer-events-none" />
@@ -208,7 +252,7 @@ export default function MyProfilePage() {
                 required
                 className="w-full bg-transparent border-0 p-0 text-sm focus:ring-0 text-slate-800 font-bold focus:outline-none"
                 placeholder="+8801XXXXXXXXX"
-                value={profile.phone}
+                value={profile.phone || ""}
                 onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
               />
             </div>
@@ -222,7 +266,7 @@ export default function MyProfilePage() {
                 type="text"
                 className="w-full bg-transparent border-0 p-0 text-sm focus:ring-0 text-slate-800 font-bold focus:outline-none"
                 placeholder="Enter your permanent address"
-                value={profile.address}
+                value={profile.address || ""}
                 onChange={(e) => setProfile({ ...profile, address: e.target.value })}
               />
             </div>

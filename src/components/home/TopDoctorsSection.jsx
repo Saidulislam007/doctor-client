@@ -12,30 +12,19 @@ export default function TopDoctorsSection() {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
 
-  // 🎯 পিওর জাভাস্ক্রিপ্ট হেল্পার ফাংশন: ব্রাউজার কুকি থেকে টোকেন রিড করার জন্য
-  const getCookie = (name) => {
-    if (typeof window === "undefined") return "";
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(";").shift();
-    return "";
-  };
-
-  // 🎯 ব্যাকএন্ড এপিআই থেকে ডাক্তারদের ডেটা নিয়ে আসার হুক
+  // 🎯 ব্যাকএন্ড এপিআই থেকে ডাক্তারদের ডেটা নিয়ে আসার হুক (ফিক্সড ইউআরএল মেকানিজম ভাই)
   useEffect(() => {
     const fetchTopDoctors = async () => {
       try {
         setLoading(true);
         
-        // Better Auth টোকেন বা কাস্টম JWT টোকেন কুকি থেকে নেওয়া হচ্ছে ভাই
-        const token = getCookie("token") || getCookie("better-auth.session_token");
+        // 🎯 সেফ প্রোডাকশন ব্যাকএন্ড ইউআরএল ফলব্যাক লক করা হলো ভাই
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://doctor-server-navy-one.vercel.app".trim();
 
-        // 🎯 ফিক্সড কম্বাইন্ড ফেচ কনফিগারেশন
-        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/doctors`, {
+        const response = await fetch(`${apiBaseUrl}/doctors`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            "authorization": `Bearer ${token}` // ব্যাকএন্ড যদি হেডার চেক করে তবে এটি লাগবে
           },
           credentials: "include" // 🎯 অত্যন্ত জরুরি: কুকি এপ্রোচ ব্যাকএন্ডে পাস করার জন্য
         });
@@ -56,7 +45,7 @@ export default function TopDoctorsSection() {
     fetchTopDoctors();
   }, []);
 
-  // ইন্টারসেকশন observer হুক ইন্টিগ্রেশন
+  // 🎯 ইন্টারসেকশন observer হুক ইন্টিগ্রেশন
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {

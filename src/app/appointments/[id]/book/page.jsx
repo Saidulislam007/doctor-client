@@ -25,17 +25,32 @@ export default function BookingCheckoutPage() {
     symptoms: "",
   });
 
-  // 🎯 ২. ব্যাকএন্ড থেকে ডাক্তারের রিয়েল-টাইম ডাটা ফেচ করে আনার মাস্টার হুক ভাই
+  // 🎯 কুকি থেকে টোকেন রিড করার জন্য পিওর জাভাস্ক্রিপ্ট ইউনিভার্সাল হেল্পার ভাই
+  const getCookie = (name) => {
+    if (typeof window === "undefined") return "";
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+    return "";
+  };
+
+  // 🎯 ২. ব্যাকএন্ড থেকে ডাক্তারের রিয়েল-টাইม ডাটা ফেচ করে আনার মাস্টার হুক ভাই
   useEffect(() => {
     const fetchDoctorForCheckout = async () => {
       if (!doctorId || doctorId === "undefined") return;
 
       try {
         setPageLoading(true);
-        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/doctors/${doctorId}`, {
+
+        const token = getCookie("token") || getCookie("better-auth.session_token");
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://doctor-server-navy-one.vercel.app".trim();
+
+        // 🎯 ফিক্সড: সেফ প্রোডাকশন ইউআরএল এবং অথরাইজেশন হেডার পাস ভাই
+        const response = await fetch(`${apiBaseUrl}/doctors/${doctorId}`, {
           method: "GET",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "authorization": `Bearer ${token}` // 🔒 সিকিউরিটি পাস
           },
           credentials: "include" // Better Auth সেশন কুকি পাস করার জন্য ভাই
         });
@@ -72,7 +87,7 @@ export default function BookingCheckoutPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmitBooking = async (e) => {
+ const handleSubmitBooking = async (e) => {
     e.preventDefault();
     
     if (!formData.patientName || !formData.patientPhone || !formData.appointmentDate || !formData.timeSlot) {
@@ -81,25 +96,40 @@ export default function BookingCheckoutPage() {
 
     setLoading(true);
     
+    // 🎯 ঠিক এইখানে আপনার নতুন ফিক্সড কোডটি পেস্ট করে দিন ভাই:
     try {
-      // 🎯 ৩. ব্যাকএন্ডে সাকসেসফুল অ্যাপয়েন্টমেন্ট পোস্ট কল ভাই
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/appointments`, {
+      const token = getCookie("token") || getCookie("better-auth.session_token");
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://doctor-server-navy-one.vercel.app".trim();
+
+      // 🎯 ফিক্সড: ক্র্যাশ-প্রুফ পোস্ট রিকোয়েস্ট মেকানিজম ভাই
+      const response = await fetch(`${apiBaseUrl}/appointments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}` // 🔒 প্রোডাকশন সিকিউরিটি কমপ্লায়েন্স
         },
         body: JSON.stringify({
-          ...formData,
+          patientName: formData.patientName,
+          patientPhone: formData.patientPhone,
+          appointmentDate: formData.appointmentDate,
+          timeSlot: formData.timeSlot,
+          symptoms: formData.symptoms || "",
           doctorId: doctorId,
-          doctorName: doctor?.name, 
-          specialty: doctor?.specialty,
+          doctorName: doctor?.name || "", 
+          specialty: doctor?.specialty || "",
           fee: doctor?.fee || 1000
         }),
       });
 
+      // 🎯 যদি সার্ভার থেকে কোনো কারণে ৫০০ বা ৪০০ এরর আসে, তা ক্যাচ করার সেফটি গেট ভাই
+      if (!response.ok) {
+        throw new Error(`Server responded with status ${response.status}`);
+      }
+
       const data = await response.json();
 
-      if (data.acknowledged || data.insertedId) {
+      // 🎯 মঙ্গোডিবির রেসপন্স অবজেক্ট সিঙ্কিং (insertedId অথবা acknowledged যেকোনো একটি ট্রু হলেই সাকসেস ভাই!)
+      if (data.acknowledged || data.insertedId || data.success) {
         toast.success(`Appointment with ${doctor?.name} successfully requested!`);
         router.push("/dashboard");
       } else {
@@ -107,14 +137,14 @@ export default function BookingCheckoutPage() {
       }
 
     } catch (error) {
-      console.error("❌ Booking Error:", error);
+      console.error("❌ Booking Error Details:", error.message);
       toast.error("Server-side connection failed. Please try again.");
     } finally {
-      setLoading(false);
+      setLoading(false); // 🎯 এই লাইনটি যেন ঠিকভাবে ফাংশনের একদম শেষে থাকে ভাই
     }
   };
 
-  // ⏳ পেজ প্রথম লোড হওয়ার সময় প্রিমিয়াম স্পিনার স্ক্রিন ভাই
+  // ⏳ পেজ প্রথম লোড হওয়ার সময় প্রিমিয়াম স্পিনার স্ক্রিন ভাই
   if (pageLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50/60 p-4">
@@ -124,7 +154,7 @@ export default function BookingCheckoutPage() {
     );
   }
 
-  // ❌ আইডি ডাটাবেজে না মিললে সেফটি গেটওয়ে
+  // ❌ আইডি ডাটাবেজে না মিললে সেфটি গেটওয়ে
   if (!doctor) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">

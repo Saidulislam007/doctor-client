@@ -20,27 +20,30 @@ export default function AppointmentsPage() {
     return "";
   };
 
-  // 🎯 ব্যাকএন্ড এপিআই থেকে ডাক্তারদের ডাটা ফেচ করার হুক
+  // 🎯 ব্যাকএন্ড এپیআই থেকে ডাক্তারদের ডাটা ফেচ করার হুক
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
         setLoading(true);
-        
-        // Better Auth টোকেন বা আপনার কাস্টম JWT টোকেন কুকি থেকে নেওয়া হচ্ছে ভাই
+
+        // Better Auth টোকেন বা আপনার কাস্টম JWT টোকেন কুকি থেকে নেওয়া হচ্ছে ভাই
         const token = getCookie("token") || getCookie("better-auth.session_token");
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/doctors`, {
+        // 🎯 ফিক্সড: Vercel-এর 'Invalid URL' এরর চিরতরে দূর করার জন্য ডাইনামিক ও আল্ট্রা-সেফ ফলব্যাক ইউআরএল লজিক ভাই!
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://doctor-server-navy-one.vercel.app".trim();
+
+        const response = await fetch(`${apiBaseUrl}/doctors`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
             "authorization": `Bearer ${token}` // 🎯 ফিক্সড: এখন আর cookieStore এরর আসবে না ভাই
           },
         });
-        
+
         if (!response.ok) {
           throw new Error("Failed to sync data stream from server");
         }
-        
+
         const data = await response.json();
         setDoctors(data);
       } catch (err) {
@@ -56,7 +59,7 @@ export default function AppointmentsPage() {
 
   // 🎯 ব্রাউজার ট্যাব টাইটেল চেঞ্জ হুক
   useEffect(() => {
-    document.title = "Appointments | MedReserve"; 
+    document.title = "Appointments | MedReserve";
   }, []);
 
   // 📊 প্রফেশনাল ফিল্টারিং এবং সর্টিং লজিক
@@ -80,7 +83,7 @@ export default function AppointmentsPage() {
     );
   }
 
-  // ❌ কন্ডিশন ২: ব্যাকএন্ড সার্ভার বন্ধ থাকলে বা এপিআই একদম ফাঁকা ডাটা দিলে এরর মেসেজ স্ক্রিন
+  // ❌ কন্ডিশন ২: ব্যাকএন্ড সার্ভার বন্ধ থাকলে বা এپیআই একদম ফাঁকা ডাটা দিলে এরর মেসেজ স্ক্রিন
   if (error || doctors.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 text-center">
@@ -88,8 +91,8 @@ export default function AppointmentsPage() {
         <p className="text-sm text-slate-500 font-medium mt-1 max-w-sm">
           {error || "No verified doctors found in the server at this moment."}
         </p>
-        <button 
-          onClick={() => window.location.reload()} 
+        <button
+          onClick={() => window.location.reload()}
           className="mt-5 text-xs font-bold text-white bg-emerald-800 px-4 py-2.5 rounded-xl active:scale-95 transition-all shadow-md"
         >
           Retry Connection
@@ -102,21 +105,21 @@ export default function AppointmentsPage() {
   return (
     <div className="min-h-screen bg-slate-50/50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* ================= 🎯 FIXED TOP HEADER: ডার্ক লাক্সারি ব্যানার ================= */}
         <div className="w-full bg-slate-950 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/30 rounded-[32px] p-6 sm:p-10 text-left relative overflow-hidden shadow-xl mb-12 border border-slate-800/60">
           <div className="absolute right-0 top-0 bottom-0 w-80 bg-gradient-to-l from-emerald-500/5 to-transparent pointer-events-none z-0" />
-          
+
           <div className="relative z-10 space-y-4 max-w-3xl">
             <div className="inline-flex items-center space-x-2 bg-emerald-500/10 text-emerald-400 px-4 py-1.5 rounded-full text-xs font-black tracking-wider border border-emerald-500/20 uppercase">
               <ShieldCheck className="h-3.5 w-3.5 stroke-[2.5]" />
               <span>Verified Accounts Portal</span>
             </div>
-            
+
             <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight flex items-center gap-3">
               All Appointments! <span className="animate-[wiggle_1s_ease-in-out_infinite] origin-bottom-right inline-block">👋</span>
             </h1>
-            
+
             <p className="text-slate-400 text-xs sm:text-sm font-medium leading-relaxed max-w-2xl">
               Manage your upcoming medical consultations, historical healthcare logs, and update your patient credential record instantly through our secure gateway. Browse elite practitioners ranked dynamically by patient satisfaction grades.
             </p>
@@ -156,7 +159,7 @@ export default function AppointmentsPage() {
               </button>
             )}
           </div>
-          
+
           {searchQuery && (
             <p className="text-left text-xs font-bold text-slate-400 mt-2.5 pl-1 uppercase tracking-wide">
               Found <span className="text-emerald-800 font-black">{filteredAndSortedDoctors.length}</span> results matching your query
@@ -165,7 +168,6 @@ export default function AppointmentsPage() {
         </div>
 
         {/* ================= 📱💻 ALL DEVICES UNIVERSAL GRID SYSTEM ================= */}
-        {/* 🎯 ফিক্সড কন্ডিশন: সার্চ রেজাল্ট ট্র্যাকিং এখন filteredAndSortedDoctors-এর ওপর বেস করে হবে ভাই */}
         {filteredAndSortedDoctors.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-md sm:max-w-none mx-auto">
             {filteredAndSortedDoctors.map((doctor, index) => (
@@ -173,7 +175,7 @@ export default function AppointmentsPage() {
                 key={doctor.id || doctor._id}
                 className="bg-white border border-slate-100 p-4 rounded-[32px] shadow-md hover:shadow-2xl active:scale-[0.995] md:hover:-top-2 top-0 flex flex-col group relative transition-all duration-500"
               >
-                
+
                 {/* TOP COMPONENT: ইমেজ বক্স */}
                 <div className="w-full h-72 sm:h-64 lg:h-72 bg-[#b2b9be]/30 rounded-[24px] overflow-hidden shrink-0 relative flex items-center justify-center p-2 shadow-inner">
                   <img
@@ -181,7 +183,7 @@ export default function AppointmentsPage() {
                     alt={doctor.name}
                     className="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                   />
-                  
+
                   <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-slate-800 font-black text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm">
                     RANK #{index + 1}
                   </span>
@@ -239,7 +241,7 @@ export default function AppointmentsPage() {
             ))}
           </div>
         ) : (
-          /* 🔍 সার্চ রেজাল্ট না মিললে এই আল্ট্রা-স্লীক ব্লকিং এরিয়া শো হবে */
+          /* 🔍 সার্চ রেজাল্ট না মিললে এই আল্ট্রা-স্লীক ব্লকিং এরিয়া শো হবে */
           <div className="w-full py-16 text-center bg-white border border-slate-100 rounded-[32px] shadow-sm max-w-xl mx-auto">
             <p className="text-base font-black text-slate-800 tracking-tight">No Practitioners Found</p>
             <p className="text-xs text-slate-400 font-semibold mt-1 max-w-xs mx-auto">

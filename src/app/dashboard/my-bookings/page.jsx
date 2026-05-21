@@ -10,7 +10,7 @@ export default function MyBookingsPage() {
     document.title = "My Bookings | MedReserve"; 
   }, []);
 
-  // লাইভ স্টেট ম্যানেজমেন্ট ফ্রেমওয়ার্ক (লজিক সম্পূর্ণ অপরিবর্তিত)
+  // লাইভ স্টেট ম্যানেজমেন্ট ফ্রেমওয়ার্ক
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,11 +18,14 @@ export default function MyBookingsPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingData, setEditingData] = useState(null);
 
-  // 🎯 ১. ডাটাবেজ থেকে সব অ্যাপয়েন্টমেন্ট ফেচ করে নিয়ে আসার হুক
+  // 🎯 ১. ডাটাবেজ থেকে সব অ্যাপয়েন্টমেন্ট ফেচ করে নিয়ে আসার হুক (ফিক্সড ইউআরএল মেকানিজম ভাই)
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/appointments`);
+      
+      // 🎯 সেফ প্রোডাকশন ব্যাকএন্ড ইউআরএল ফলব্যাক ভাই
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://doctor-server-navy-one.vercel.app".trim();
+      const response = await fetch(`${apiBaseUrl}/appointments`);
       
       if (!response.ok) {
         throw new Error("Failed to load appointments from server");
@@ -42,11 +45,12 @@ export default function MyBookingsPage() {
     fetchBookings();
   }, []);
 
-  // 🎯 ২. আসল ব্যাকএন্ড ডিলিট রিকোয়েস্ট পাইপলাইন ফাংশন ভাই
+  // 🎯 ২. আসল ব্যাকএন্ড ডিলিট রিকোয়েস্ট পাইপলাইন ফাংশন ভাই (ফিক্সড ইউআরএল মেকানিজম ভাই)
   const executeDeletePipeline = async (id) => {
     const loadingToast = toast.loading("Processing cancellation logs...");
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/appointments/${id}`, {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://doctor-server-navy-one.vercel.app".trim();
+      const response = await fetch(`${apiBaseUrl}/appointments/${id}`, {
         method: "DELETE",
       });
 
@@ -64,7 +68,7 @@ export default function MyBookingsPage() {
     }
   };
 
-  // 🗑️ ৩. লাইভ ডিলিট অ্যাকশন হ্যান্ডেলার (🎯 ব্রাউজার পপ-আপ মুক্ত প্রিমিয়াম টোস্ট কনফার্মেশন ইমপ্লিমেন্টেশন ভাই!)
+  // 🗑️ ৩. লাইভ ডিলিট অ্যাকশন হ্যান্ডেলার (🎯 ব্রাউজার পপ-আপ মুক্ত প্রিমিয়াম টোস্ট কনফার্মেশন ইমপ্লিমেন্টেশন ভাই!)
   const handleDelete = (id, doctorName) => {
     toast((t) => (
       <div className="flex flex-col space-y-3 p-1 text-left">
@@ -114,13 +118,14 @@ export default function MyBookingsPage() {
     setIsEditModalOpen(true);
   };
 
-  // 🔄 ৪. লাইভ আপডেট সাবমিট হ্যান্ডেলার (লজিক ও ফাংশনালিটি অপরিবর্তিত)
+  // 🔄 ৪. লাইভ আপডেট সাবমিট হ্যান্ডেলার (ফিক্সড ইউআরএল মেকানিজম ভাই)
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
     const targetId = editingData._id || editingData.id;
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/appointments/${targetId}`, {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://doctor-server-navy-one.vercel.app".trim();
+      const response = await fetch(`${apiBaseUrl}/appointments/${targetId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

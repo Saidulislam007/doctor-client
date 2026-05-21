@@ -12,29 +12,29 @@ export default function DoctorDetailsPage() {
   // 🎯 ১. নেক্সট জেএস ইউআরএল থেকে আইডি সেফলি রিসিভ করা হলো ভাই
   const doctorId = params.id; 
 
-  // 🎯 ২. রিয়্যাক্ট রুলস অনুযায়ী সব স্টেট হুক সবার ওপরে ডিক্লেয়ার করা হলো
+  // 🎯 ২. রিয়্যাক্ট রুলস অনুযায়ী সব স্টেট হুক সবার ওপরে ডিক্লেয়ার করা হলো
   const [doctor, setDoctor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
 
   // 🎯 ব্রাউজার ট্যাবের নাম ডাইনামিকালি চেঞ্জ করার ম্যাজিক হুক ভাই!
-useEffect(() => {
-  if (doctor && doctor.name) {
-    // ডাক্তার ডাটা লোড হলে ট্যাবে ডাক্তারের নাম দেখাবে ভাই
-    document.title = `${doctor.name} | MedReserve`;
-  } else {
-    // ডাটা লোড হওয়ার আগ পর্যন্ত বা এরর থাকলে ডিফল্ট নাম থাকবে
-    document.title = "Doctor Details | MedReserve";
-  }
+  useEffect(() => {
+    if (doctor && doctor.name) {
+      // ডাক্তার ডাটা লোড হলে ট্যাবে ডাক্তারের নাম দেখাবে ভাই
+      document.title = `${doctor.name} | MedReserve`;
+    } else {
+      // ডাটা লোড হওয়ার আগ পর্যন্ত বা এরর থাকলে ডিফল্ট নাম থাকবে
+      document.title = "Doctor Details | MedReserve";
+    }
 
-  // 🎯 ক্লিনআপ ফাংশন: ইউজার যখন এই পেজ থেকে বের হয়ে যাবে, তখন টাইটেল আগের মতো হয়ে যাবে
-  return () => {
-    document.title = "MedReserve | Premier Doctor Appointment";
-  };
-}, [doctor]); // doctor স্টেট চেঞ্জ হলেই এটি রান করবে ভাই
+    // 🎯 ক্লিনআপ ফাংশন: ইউজার যখন এই পেজ থেকে বের হয়ে যাবে, তখন টাইটেল আগের মতো হয়ে যাবে
+    return () => {
+      document.title = "MedReserve | Premier Doctor Appointment";
+    };
+  }, [doctor]); // doctor স্টেট চেঞ্জ হলেই এটি রান করবে ভাই
 
-  // 🎯 ৩. লাইভ ব্যাকএন্ড থেকে নির্দিষ্ট ডাক্তারের ডাটা নিয়ে আসার সিঙ্কড হুক
+  // 🎯 ৩. লাইভ ব্যাকএন্ড থেকে নির্দিষ্ট ডাক্তারের ডাটা নিয়ে আসার সিঙ্কড হুক
   useEffect(() => {
     const fetchDoctorDetails = async () => {
       // সুরক্ষার জন্য কন্ডিশনাল চেক (আইডি না আসা পর্যন্ত ফেচ কল টোটালি অফ থাকবে)
@@ -44,11 +44,27 @@ useEffect(() => {
         setLoading(true);
         setError(null);
         
-        // ডাইনামিক সিঙ্গেল ডক্টর এন্ডপয়েন্টে হিট করা হলো
-        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/doctors/${doctorId}`, {
+        // 🎯 কুকি থেকে অথেনটিকেশন টোকেন রিড করার জন্য পিওর জাভাস্ক্রিপ্ট হেল্পার লজিক ভাই
+        const getCookie = (name) => {
+          if (typeof window === "undefined") return "";
+          const value = `; ${document.cookie}`;
+          const parts = value.split(`; ${name}=`);
+          if (parts.length === 2) return parts.pop().split(";").shift();
+          return "";
+        };
+        
+        // Better Auth টোকেন বা কাস্টম JWT কুকি থেকে চেক করা হচ্ছে ভাই
+        const token = getCookie("token") || getCookie("better-auth.session_token");
+
+        // 🎯 ফিক্সড: ডাবল ডোমেইনের ৪0৪ এরর চিরতরে দূর করার জন্য ডাইনামিক ও আল্ট্রা-সেফ ফলব্যাক ইউআরএল লজিক ভাই!
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://doctor-server-navy-one.vercel.app".trim();
+
+        // ডাইনামিক সিঙ্গেল ডক্টর এন্ডপয়েন্টে হিট করা হলো ভাই
+        const response = await fetch(`${apiBaseUrl}/doctors/${doctorId}`, {
           method: "GET",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "authorization": `Bearer ${token}` // 🎯 ফিক্সড: এই চাবিকাঠিটি যুক্ত করায় এখন আর ৪০১ Unauthorized এরর আসবে না ভাই!
           },
           credentials: "include" // 🎯 Better Auth সেশন কুকি ব্যাকএন্ডে পাস করানোর মাস্টার কি!
         });
