@@ -1,36 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🩺 MedReserve – Premier Doctor Appointment Portal
 
-## Getting Started
+MedReserve is a premium, secure, and modern full-stack doctor appointment and healthcare management application. Built using Next.js and Tailwind CSS on the frontend, and Node.js with Express and MongoDB on the backend, it delivers a seamless, high-performance clinical practitioner booking ecosystem for patients.
 
-First, run the development server:
+### 🌐 [Live Site URL](https://doctor-client-beta.vercel.app)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ✨ Key Features & Functionalities
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+* **Elite Clinical Practitioner Grid:** Features a dynamically updated dashboard showcasing top-rated clinical practitioners, sorted automatically based on patient ratings and verified clinical performance metrics.
+* **Decentralized Identity Profile Gateway:** Patients can seamlessly manage, secure, and sync their personalized healthcare profiles (including avatar image URLs, unique contact metrics, and biological blood groups) safely inside the cloud database.
+* **Real-Time Rescheduling System:** Features an advanced, responsive modal layout allowing patients to dynamically shift consultation timelines and dates on-the-fly without breaking active workflow logs.
+* **Premium Pop-up Free Actions:** Fully integrated with custom `react-hot-toast` conformation panels for critical actions like booking cancellations, replacing annoying browser default pop-ups with a glossy SaaS experience.
+* **Cross-Origin Compliance & Safe Gates:** Architecture fully protected against unexpected server connection loss via robust serverless environment configurations, dynamic remote JWKS authentication syncing, and universal dynamic CORS configurations.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🛠️ Technical Stack Specifications
 
-To learn more about Next.js, take a look at the following resources:
+### Frontend Layer
+* **Framework:** Next.js (App Router Architecture)
+* **Styling Engine:** Tailwind CSS & Lucide Icons
+* **State & Syncing:** React Hooks (`useState`, `useEffect`, `useRef`)
+* **Notifications:** React Hot Toast
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Backend & Database Layer
+* **Runtime Environment:** Node.js
+* **Server Framework:** Express.js
+* **Database Engine:** MongoDB (Cloud Atlas Deployment)
+* **Security & Gateways:** Universal CORS Policy & Cookie Parser Hooks
