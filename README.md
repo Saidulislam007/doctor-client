@@ -1,4 +1,5 @@
-# 🩺 MedReserve – Premier Doctor Appointment Portal
+# 🩺 MedReserve – Doctor Appointment Manager(DocAppoint)
+
 
 MedReserve is a premium, secure, and modern full-stack doctor appointment and healthcare management application. Built using Next.js and Tailwind CSS on the frontend, and Node.js with Express and MongoDB on the backend, it delivers a seamless, high-performance clinical practitioner booking ecosystem for patients.
 
